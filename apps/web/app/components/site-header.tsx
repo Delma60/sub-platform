@@ -16,7 +16,11 @@ export function SiteHeader() {
         </Link>
         <nav className="flex gap-4 text-sm text-slate-600">
           {links.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-slate-900">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="hover:text-slate-900"
+            >
               {link.label}
             </Link>
           ))}
