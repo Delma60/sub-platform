@@ -17,6 +17,10 @@ export function findUserByEmail(email: string) {
   return users.get(email.toLowerCase()) ?? null;
 }
 
+export function findUserById(id: string) {
+  return Array.from(users.values()).find((user) => user.id === id) ?? null;
+}
+
 export function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
   const record: StoredUser = {
     ...user,
