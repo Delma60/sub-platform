@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,10 +18,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
       const json = await res.json();
 
@@ -56,10 +57,10 @@ export default function LoginPage() {
 
         <div className="absolute bottom-10 left-8 right-8">
           <blockquote className="font-display text-2xl italic leading-snug text-[#FAF6EF]">
-            "Sourced from 40+ farms across Ogun, Oyo and Lagos — delivered fresh, on your schedule."
+            "Set up in under three minutes and skip your next market run."
           </blockquote>
           <p className="mt-4 text-[13px] uppercase tracking-[0.12em] text-[#FAF6EF]/60">
-            This week's box · Family Plan
+            Weekly delivery · Flexible swaps
           </p>
         </div>
       </div>
@@ -71,16 +72,33 @@ export default function LoginPage() {
           </Link>
 
           <p className="mt-6 text-[12px] font-medium uppercase tracking-[0.15em] text-[#BC8A31]">
-            Welcome back
+            Start fresh
           </p>
           <h1 className="mt-2 font-display text-3xl leading-[1.05]">
-            Sign in to your kitchen
+            Create your account
           </h1>
           <p className="mt-2 text-[15px] text-[#6B6558]">
-            Manage deliveries, swap items, or pause your plan.
+            Get started with weekly delivery, flexible swaps, and easy pauses.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="name" className="text-sm font-medium">
+                Full name
+              </label>
+              <input
+                id="name"
+                type="text"
+                required
+                minLength={2}
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="rounded-md border border-[#E4DCC8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#24402F]"
+                placeholder="Jane Doe"
+              />
+            </div>
+
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-sm font-medium">
                 Email
@@ -98,25 +116,21 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </label>
-                <Link href="/auth/forgot-password" className="text-xs text-[#6B6558] underline">
-                  Forgot?
-                </Link>
-              </div>
+              <label htmlFor="password" className="text-sm font-medium">
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
                 required
                 minLength={8}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="rounded-md border border-[#E4DCC8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#24402F]"
                 placeholder="••••••••"
               />
+              <p className="text-xs text-[#6B6558]">At least 8 characters.</p>
             </div>
 
             {error && (
@@ -130,14 +144,14 @@ export default function LoginPage() {
               disabled={loading}
               className="mt-2 rounded-md bg-[#24402F] px-5 py-3 text-sm font-medium text-[#FAF6EF] transition hover:bg-[#1a2f22] disabled:opacity-60"
             >
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? "Creating account…" : "Create account"}
             </button>
           </form>
 
           <p className="mt-6 border-t border-[#E4DCC8] pt-5 text-sm text-[#6B6558]">
-            Don't have an account?{" "}
-            <Link href="/auth/register" className="text-[#24402F] underline">
-              Create one
+            Already have an account?{" "}
+            <Link href="/auth/login" className="text-[#24402F] underline">
+              Sign in
             </Link>
           </p>
         </div>
@@ -159,10 +173,10 @@ export default function LoginPage() {
 
         <div className="absolute bottom-10 left-8 right-8">
           <blockquote className="font-display text-2xl italic leading-snug text-[#FAF6EF]">
-            "Sourced from 40+ farms across Ogun, Oyo and Lagos — delivered fresh, on your schedule."
+            "Set up in under three minutes and skip your next market run."
           </blockquote>
-          <p className="mt-4 text-[13px] uppercase tracking-[0.12em] text-[#FAF6EF]/60">
-            This week's box · Family Plan
+          <p className="mt-3 text-[13px] uppercase tracking-[0.12em] text-[#FAF6EF]/60">
+            Weekly delivery · Flexible swaps
           </p>
         </div>
       </div>

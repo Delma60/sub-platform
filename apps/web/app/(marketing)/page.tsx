@@ -27,7 +27,13 @@ export default function HomePage() {
           </nav>
 
           <Link
-            href="#plans"
+            href="/auth/login"
+            className="hidden text-[13px] font-medium text-[#17251C] transition hover:text-[#24402F] md:inline-block"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/auth/register"
             className="hidden rounded-md bg-[#24402F] px-5 py-2.5 text-[13px] font-medium text-[#FAF6EF] transition hover:bg-[#1a2f22] md:inline-block"
           >
             Start your subscription
@@ -51,7 +57,13 @@ export default function HomePage() {
             <a href="#plans">Plans</a>
             <a href="#faq">FAQ</a>
             <Link
-              href="#plans"
+              href="/auth/login"
+              className="mt-2 text-sm font-medium text-[#17251C] hover:text-[#24402F]"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/auth/register"
               className="mt-2 rounded-md bg-[#24402F] px-5 py-3 text-center text-sm font-medium text-[#FAF6EF]"
             >
               Start your subscription
@@ -324,7 +336,7 @@ export default function HomePage() {
                 </ul>
 
                 <Link
-                  href="/subscribe"
+                  href="/auth/register"
                   className={`mt-8 block rounded-md px-6 py-3 text-center text-sm font-medium transition ${
                     plan.highlight
                       ? "bg-[#24402F] text-[#FAF6EF] hover:bg-[#1a2f22]"

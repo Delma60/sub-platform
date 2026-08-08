@@ -1,42 +1,36 @@
 import { NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
-import { registerSchema } from "../../lib/validation";
-import { createUser, findUserByEmail } from "../../lib/store";
+import { loginSchema } from "../../lib/validation";
+import { findUserByEmail } from "../../lib/store";
 import {
   createSessionToken,
-  hashPassword,
+  verifyPassword,
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
 } from "../../lib/auth";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
-  const parsed = registerSchema.safeParse(body);
+  const parsed = loginSchema.safeParse(body);
 
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? "Invalid input";
     return NextResponse.json(apiError(message, 422), { status: 422 });
   }
 
-  const { name, email, password } = parsed.data;
+  const { email, password } = parsed.data;
+  const user = findUserByEmail(email);
 
-  if (findUserByEmail(email)) {
-    return NextResponse.json(
-      apiError("An account with this email already exists", 409),
-      { status: 409 }
-    );
+  if (!user || !verifyPassword(password, user.passwordHash)) {
+    return NextResponse.json(apiError("Invalid email or password", 401), {
+      status: 401,
+    });
   }
 
-  const user = createUser({
-    name,
-    email,
-    passwordHash: hashPassword(password),
-  });
   const token = createSessionToken({ sub: user.id, email: user.email });
 
   const response = NextResponse.json(
-    apiSuccess({ user: { id: user.id, name: user.name, email: user.email } }),
-    { status: 201 }
+    apiSuccess({ user: { id: user.id, name: user.name, email: user.email } })
   );
 
   response.cookies.set(SESSION_COOKIE_NAME, token, {

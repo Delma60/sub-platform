@@ -14,7 +14,7 @@ export function SiteHeader() {
         <Link href="/" className="text-lg font-semibold">
           Foodstuff Platform
         </Link>
-        <nav className="flex gap-4 text-sm text-slate-600">
+        <nav className="flex items-center gap-3 text-sm text-slate-600">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -24,6 +24,15 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
+          <Link href="/auth/login" className="hover:text-slate-900">
+            Log in
+          </Link>
+          <Link
+            href="/auth/register"
+            className="rounded bg-slate-900 px-3 py-1.5 text-white"
+          >
+            Sign up
+          </Link>
         </nav>
       </div>
     </header>
