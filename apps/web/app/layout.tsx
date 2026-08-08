@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Foodstuff Platform",
-  description: "A subscription platform for fresh essentials and recurring deliveries.",
+  description:
+    "A subscription platform for fresh essentials and recurring deliveries.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
