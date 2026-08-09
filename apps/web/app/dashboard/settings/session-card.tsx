@@ -7,7 +7,8 @@ export function SessionCard({ email }: { email: string }) {
         <div>
           <h2 className="font-display text-lg text-[#17251C]">Session</h2>
           <p className="mt-1 text-sm text-[#6B6558]">
-            You're signed in as <span className="text-[#17251C]">{email}</span> on this device.
+            You're signed in as <span className="text-[#17251C]">{email}</span>{" "}
+            on this device.
           </p>
         </div>
         <form action="/api/auth/logout" method="POST">
