@@ -15,8 +15,11 @@ export function PasswordForm() {
 
   const tooShort = newPassword.length > 0 && newPassword.length < 8;
   const sameAsCurrent =
-    currentPassword.length > 0 && newPassword.length > 0 && newPassword === currentPassword;
-  const mismatch = confirmPassword.length > 0 && confirmPassword !== newPassword;
+    currentPassword.length > 0 &&
+    newPassword.length > 0 &&
+    newPassword === currentPassword;
+  const mismatch =
+    confirmPassword.length > 0 && confirmPassword !== newPassword;
 
   const canSubmit = useMemo(
     () =>
@@ -75,7 +78,9 @@ export function PasswordForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-[#15150F]">Current password</label>
+        <label className="text-sm font-medium text-[#15150F]">
+          Current password
+        </label>
         <input
           type="password"
           required
@@ -88,7 +93,9 @@ export function PasswordForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-[#15150F]">New password</label>
+        <label className="text-sm font-medium text-[#15150F]">
+          New password
+        </label>
         <input
           type="password"
           required
@@ -100,14 +107,20 @@ export function PasswordForm() {
             sameAsCurrent ? "border-[#B3261E]" : "border-[#E6E3DA]"
           }`}
         />
-        {tooShort && <p className="text-xs text-[#706C60]">At least 8 characters.</p>}
+        {tooShort && (
+          <p className="text-xs text-[#706C60]">At least 8 characters.</p>
+        )}
         {sameAsCurrent && (
-          <p className="text-xs text-[#B3261E]">New password must differ from your current one.</p>
+          <p className="text-xs text-[#B3261E]">
+            New password must differ from your current one.
+          </p>
         )}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-[#15150F]">Confirm new password</label>
+        <label className="text-sm font-medium text-[#15150F]">
+          Confirm new password
+        </label>
         <input
           type="password"
           required
@@ -119,7 +132,9 @@ export function PasswordForm() {
             mismatch ? "border-[#B3261E]" : "border-[#E6E3DA]"
           }`}
         />
-        {mismatch && <p className="text-xs text-[#B3261E]">Passwords don't match.</p>}
+        {mismatch && (
+          <p className="text-xs text-[#B3261E]">Passwords don't match.</p>
+        )}
       </div>
 
       {message && (

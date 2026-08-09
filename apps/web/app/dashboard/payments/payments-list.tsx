@@ -27,7 +27,9 @@ export function PaymentsList({ payments }: { payments: Payment[] }) {
 
   const filtered = useMemo(
     () =>
-      filter === "all" ? payments : payments.filter((payment) => payment.status === filter),
+      filter === "all"
+        ? payments
+        : payments.filter((payment) => payment.status === filter),
     [payments, filter],
   );
 
@@ -80,8 +82,12 @@ export function PaymentsList({ payments }: { payments: Payment[] }) {
 
       {groups.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-1 rounded-md border border-dashed border-[#E6E3DA] py-10 text-center">
-          <p className="text-sm font-medium text-[#15150F]">No payments in this status</p>
-          <p className="text-sm text-[#706C60]">Try a different filter above.</p>
+          <p className="text-sm font-medium text-[#15150F]">
+            No payments in this status
+          </p>
+          <p className="text-sm text-[#706C60]">
+            Try a different filter above.
+          </p>
         </div>
       ) : (
         <div className="mt-6 flex flex-col gap-7">
@@ -113,10 +119,12 @@ function PaymentRow({ payment }: { payment: Payment }) {
           </span>
           <div>
             <p className="text-sm font-medium text-[#15150F]">
-              {payment.planName ? `${payment.planName} plan` : "Payment"} · Order #{payment.orderId.split("_")[1]}
+              {payment.planName ? `${payment.planName} plan` : "Payment"} ·
+              Order #{payment.orderId.split("_")[1]}
             </p>
             <p className="mt-0.5 text-xs text-[#706C60]">
-              {payment.method} · {new Date(payment.createdAt).toLocaleDateString("en-NG", {
+              {payment.method} ·{" "}
+              {new Date(payment.createdAt).toLocaleDateString("en-NG", {
                 month: "short",
                 day: "numeric",
               })}
@@ -135,7 +143,8 @@ function PaymentRow({ payment }: { payment: Payment }) {
       {payment.status === "failed" && (
         <div className="ml-12 flex items-center justify-between gap-3 rounded-md border border-[#F3D4CF] bg-[#FBEAE7] px-3.5 py-2.5">
           <p className="text-xs text-[#8A3B34]">
-            This charge didn't go through. Your subscription is unaffected until you retry.
+            This charge didn't go through. Your subscription is unaffected until
+            you retry.
           </p>
           <Link
             href="/dashboard/subscription"
@@ -148,7 +157,8 @@ function PaymentRow({ payment }: { payment: Payment }) {
 
       {payment.status === "pending" && (
         <p className="ml-12 text-xs text-[#706C60]">
-          Still confirming with your bank — this usually clears within a few minutes.
+          Still confirming with your bank — this usually clears within a few
+          minutes.
         </p>
       )}
     </div>
@@ -158,9 +168,22 @@ function PaymentRow({ payment }: { payment: Payment }) {
 function CardIcon() {
   return (
     <svg viewBox="0 0 20 20" fill="none" width={16} height={16}>
-      <rect x="2.5" y="4.5" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+      <rect
+        x="2.5"
+        y="4.5"
+        width="15"
+        height="11"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
       <path d="M2.5 8h15" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M5.5 12h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M5.5 12h3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

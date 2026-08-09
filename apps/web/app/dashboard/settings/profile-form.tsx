@@ -76,7 +76,9 @@ export function ProfileForm({
         </div>
         <div>
           <h2 className="text-lg font-semibold text-[#15150F]">Profile</h2>
-          <p className="text-sm text-[#706C60]">How you appear across the dashboard</p>
+          <p className="text-sm text-[#706C60]">
+            How you appear across the dashboard
+          </p>
         </div>
       </div>
 
@@ -101,7 +103,9 @@ export function ProfileForm({
           value={email}
           className="rounded-md border border-[#E6E3DA] bg-[#F7F7F3] px-3.5 py-2.5 text-sm text-[#706C60]"
         />
-        <p className="text-xs text-[#706C60]">Contact support to change your email.</p>
+        <p className="text-xs text-[#706C60]">
+          Contact support to change your email.
+        </p>
       </div>
 
       {message && (

@@ -24,7 +24,9 @@ export default async function PaymentsPage() {
   const pendingAmount = payments
     .filter((payment) => payment.status === "pending")
     .reduce((sum, payment) => sum + payment.amount, 0);
-  const failedCount = payments.filter((payment) => payment.status === "failed").length;
+  const failedCount = payments.filter(
+    (payment) => payment.status === "failed",
+  ).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,8 +70,7 @@ function StatCard({
   value: string;
   tone?: "muted" | "neutral" | "warning";
 }) {
-  const valueColor =
-    tone === "warning" ? "text-[#B3261E]" : "text-[#15150F]";
+  const valueColor = tone === "warning" ? "text-[#B3261E]" : "text-[#15150F]";
   return (
     <div className="rounded-lg border border-[#E6E3DA] bg-white p-5">
       <p className="text-xs uppercase tracking-[0.2em] text-[#706C60]">
