@@ -65,7 +65,9 @@ export function DeliveriesList({
       {rows.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-1 rounded-2xl border border-dashed border-[#E4DCC8] py-10 text-center">
           <p className="text-sm font-medium text-[#17251C]">
-            {tab === "upcoming" ? "Nothing else scheduled" : "No deliveries yet"}
+            {tab === "upcoming"
+              ? "Nothing else scheduled"
+              : "No deliveries yet"}
           </p>
         </div>
       ) : (
@@ -77,11 +79,14 @@ export function DeliveriesList({
             >
               <div>
                 <p className="text-sm font-medium text-[#17251C]">
-                  {new Date(delivery.scheduledDate).toLocaleDateString("en-NG", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {new Date(delivery.scheduledDate).toLocaleDateString(
+                    "en-NG",
+                    {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    },
+                  )}
                 </p>
                 <p className="mt-0.5 text-xs text-[#6B6558]">
                   {delivery.address

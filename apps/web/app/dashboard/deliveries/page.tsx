@@ -16,7 +16,8 @@ export default async function DeliveriesPage() {
     ...delivery,
     address:
       delivery.addressId != null
-        ? addresses.find((address) => address.id === delivery.addressId) ?? null
+        ? (addresses.find((address) => address.id === delivery.addressId) ??
+          null)
         : null,
   }));
 
@@ -127,7 +128,8 @@ export default async function DeliveriesPage() {
                     There’s an issue with this delivery
                   </p>
                   <p className="mt-1 text-sm text-[#8A3B34]">
-                    Contact support if you haven’t heard from us about a resolution.
+                    Contact support if you haven’t heard from us about a
+                    resolution.
                   </p>
                 </div>
               </div>
@@ -135,9 +137,12 @@ export default async function DeliveriesPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#E4DCC8] py-14 text-center">
-            <p className="text-sm font-medium text-[#17251C]">Nothing scheduled</p>
+            <p className="text-sm font-medium text-[#17251C]">
+              Nothing scheduled
+            </p>
             <p className="max-w-xs text-sm text-[#6B6558]">
-              Deliveries appear here once your subscription starts generating orders.
+              Deliveries appear here once your subscription starts generating
+              orders.
             </p>
             <Link
               href="/dashboard/subscription"
@@ -154,7 +159,10 @@ export default async function DeliveriesPage() {
         <StatCard label="Delivered" value={String(past.length)} />
       </div>
 
-      <DeliveriesList upcoming={next ? upcoming.slice(1) : upcoming} past={past} />
+      <DeliveriesList
+        upcoming={next ? upcoming.slice(1) : upcoming}
+        past={past}
+      />
     </div>
   );
 }
@@ -162,7 +170,9 @@ export default async function DeliveriesPage() {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-3xl border border-[#E4DCC8] bg-white p-6">
-      <p className="text-xs uppercase tracking-[0.2em] text-[#6B6558]">{label}</p>
+      <p className="text-xs uppercase tracking-[0.2em] text-[#6B6558]">
+        {label}
+      </p>
       <p className="mt-3 text-2xl font-semibold text-[#17251C]">{value}</p>
     </div>
   );

@@ -280,7 +280,18 @@ export function updateAddress(
 export function deleteAddress(userId: string, addressId: string) {
   const addr = addresses.get(addressId);
   if (!addr || addr.userId !== userId) return false;
+
   addresses.delete(addressId);
+
+  // If the deleted address was the default, promote the next remaining one
+  // so the user is never left without a default silently.
+  if (addr.isDefault) {
+    const remaining = listAddresses(userId);
+    if (remaining.length > 0) {
+      addresses.set(remaining[0].id, { ...remaining[0], isDefault: true });
+    }
+  }
+
   return true;
 }
 
