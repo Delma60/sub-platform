@@ -28,16 +28,31 @@ async function isDbAvailable() {
   return dbAvailable;
 }
 
+async function withDbFallback<T>(action: () => Promise<T>, fallback: () => Promise<T>): Promise<T> {
+  try {
+    return await action();
+  } catch (error) {
+    console.warn("Prisma query failed, falling back to in-memory auth store.", error);
+    if (process.env.NODE_ENV !== "production") {
+      dbAvailable = false;
+      return await fallback();
+    }
+    throw error;
+  }
+}
+
 export async function findUserByEmail(email: string) {
   const normalized = email.toLowerCase();
   if (!(await isDbAvailable())) {
     return users.get(normalized) ?? null;
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: normalized },
-  });
-  return user ?? null;
+  return await withDbFallback(async () => {
+    const user = await prisma.user.findUnique({
+      where: { email: normalized },
+    });
+    return user ?? null;
+  }, () => users.get(normalized) ?? null);
 }
 
 export async function findUserById(id: string) {
@@ -45,10 +60,12 @@ export async function findUserById(id: string) {
     return Array.from(users.values()).find((user) => user.id === id) ?? null;
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-  });
-  return user ?? null;
+  return await withDbFallback(async () => {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    return user ?? null;
+  }, () => Array.from(users.values()).find((user) => user.id === id) ?? null);
 }
 
 export async function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
@@ -62,12 +79,22 @@ export async function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
     return record;
   }
 
-  return prisma.user.create({
-    data: {
-      name: user.name,
-      email: user.email.toLowerCase(),
-      passwordHash: user.passwordHash,
-    },
+  return await withDbFallback(async () => {
+    return prisma.user.create({
+      data: {
+        name: user.name,
+        email: user.email.toLowerCase(),
+        passwordHash: user.passwordHash,
+      },
+    });
+  }, () => {
+    const record: StoredUser = {
+      ...user,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    users.set(user.email.toLowerCase(), record);
+    return record;
   });
 }
 
@@ -95,17 +122,37 @@ export async function updateUser(
     return updated;
   }
 
-  const user = await findUserById(id);
-  if (!user) return null;
+  return await withDbFallback(async () => {
+    const user = await findUserById(id);
+    if (!user) return null;
 
-  const updated = await prisma.user.update({
-    where: { id },
-    data: {
-      name: patch.name ?? user.name,
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        name: patch.name ?? user.name,
+        email: patch.email ? patch.email.toLowerCase() : user.email,
+        passwordHash: patch.passwordHash ?? user.passwordHash,
+      },
+    });
+
+    return updated;
+  }, async () => {
+    const user = await findUserById(id);
+    if (!user) return null;
+
+    const updated: StoredUser = {
+      ...user,
+      ...patch,
       email: patch.email ? patch.email.toLowerCase() : user.email,
-      passwordHash: patch.passwordHash ?? user.passwordHash,
-    },
-  });
+    };
 
-  return updated;
+    if (patch.email && patch.email.toLowerCase() !== user.email.toLowerCase()) {
+      users.delete(user.email.toLowerCase());
+      users.set(updated.email.toLowerCase(), updated);
+    } else {
+      users.set(user.email.toLowerCase(), updated);
+    }
+
+    return updated;
+  });
 }

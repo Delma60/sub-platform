@@ -70,15 +70,15 @@ export function PasswordForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-lg border border-[#E6E3DA] bg-white p-6"
+      className="flex flex-col gap-4 rounded-3xl border border-[#E4DCC8] bg-white p-6"
     >
       <div>
-        <h2 className="text-lg font-semibold text-[#15150F]">Password</h2>
-        <p className="text-sm text-[#706C60]">Use at least 8 characters</p>
+        <h2 className="font-display text-lg text-[#17251C]">Password</h2>
+        <p className="text-sm text-[#6B6558]">Use at least 8 characters</p>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-[#15150F]">
+        <label className="text-sm font-medium text-[#17251C]">
           Current password
         </label>
         <input
@@ -88,12 +88,12 @@ export function PasswordForm() {
           autoComplete="current-password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="rounded-md border border-[#E6E3DA] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#2E3B29]"
+          className="rounded-2xl border border-[#E4DCC8] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#24402F]"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-[#15150F]">
+        <label className="text-sm font-medium text-[#17251C]">
           New password
         </label>
         <input
@@ -103,8 +103,8 @@ export function PasswordForm() {
           autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className={`rounded-md border bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#2E3B29] ${
-            sameAsCurrent ? "border-[#B3261E]" : "border-[#E6E3DA]"
+          className={`rounded-2xl border bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#24402F] ${
+            sameAsCurrent ? "border-[#B3261E]" : "border-[#E4DCC8]"
           }`}
         />
         {tooShort && (
@@ -118,7 +118,7 @@ export function PasswordForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-[#15150F]">
+        <label className="text-sm font-medium text-[#17251C]">
           Confirm new password
         </label>
         <input
@@ -128,8 +128,8 @@ export function PasswordForm() {
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className={`rounded-md border bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#2E3B29] ${
-            mismatch ? "border-[#B3261E]" : "border-[#E6E3DA]"
+          className={`rounded-2xl border bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#24402F] ${
+            mismatch ? "border-[#B3261E]" : "border-[#E4DCC8]"
           }`}
         />
         {mismatch && (
@@ -139,9 +139,9 @@ export function PasswordForm() {
 
       {message && (
         <p
-          className={`rounded-md px-3 py-2 text-sm ${
+          className={`rounded-2xl px-3.5 py-2.5 text-sm ${
             message.type === "success"
-              ? "bg-[#EDF0E7] text-[#2E3B29]"
+              ? "bg-[#EDF0E7] text-[#24402F]"
               : "border border-[#F3D4CF] bg-[#FBEAE7] text-[#B3261E]"
           }`}
         >
@@ -152,7 +152,7 @@ export function PasswordForm() {
       <button
         type="submit"
         disabled={saving || (touched && !canSubmit)}
-        className="mt-1 self-start rounded-md bg-[#2E3B29] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#243020] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-1 self-start rounded-full bg-[#24402F] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#17251C] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {saving ? "Updating…" : "Update password"}
       </button>
