@@ -1,15 +1,21 @@
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "../lib/get-current-user";
 import { DashboardSidebar } from "./components/sidebar";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = { name: "Adaeze Okafor", email: "adaeze@example.com" };
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/auth/login");
+  }
 
   return (
     <div className="flex min-h-screen bg-[#FAF6EF] md:flex-row">
-      <DashboardSidebar user={user} />
+      <DashboardSidebar user={{ name: user.name, email: user.email }} />
       <main className="flex-1 px-6 py-8 md:px-10 md:py-10">{children}</main>
     </div>
   );

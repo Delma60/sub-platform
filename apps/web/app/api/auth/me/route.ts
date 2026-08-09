@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { findUserById } from "../../lib/store";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "../../lib/auth";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = verifySessionToken(cookie);
 

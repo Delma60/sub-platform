@@ -30,7 +30,9 @@ export function DashboardSidebar({
     .toUpperCase();
 
   const isActive = (href: string, exact?: boolean) =>
-    exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+    exact
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <>
@@ -104,8 +106,12 @@ export function DashboardSidebar({
             {initials || "?"}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-medium text-[#FAF6EF]">{user.name}</p>
-            <p className="truncate text-[12px] text-[#FAF6EF]/50">{user.email}</p>
+            <p className="truncate text-[13px] font-medium text-[#FAF6EF]">
+              {user.name}
+            </p>
+            <p className="truncate text-[12px] text-[#FAF6EF]/50">
+              {user.email}
+            </p>
           </div>
           <form action="/api/auth/logout" method="POST">
             <button
@@ -125,35 +131,103 @@ export function DashboardSidebar({
 function OverviewIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.3" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="11" y="2.5" width="6.5" height="9.5" rx="1.3" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="2.5" y="11.5" width="6.5" height="6" rx="1.3" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="11" y="14.5" width="6.5" height="3" rx="1.3" stroke="currentColor" strokeWidth="1.4" />
+      <rect
+        x="2.5"
+        y="2.5"
+        width="6.5"
+        height="6.5"
+        rx="1.3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <rect
+        x="11"
+        y="2.5"
+        width="6.5"
+        height="9.5"
+        rx="1.3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <rect
+        x="2.5"
+        y="11.5"
+        width="6.5"
+        height="6"
+        rx="1.3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <rect
+        x="11"
+        y="14.5"
+        width="6.5"
+        height="3"
+        rx="1.3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
     </svg>
   );
 }
 function BoxIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path d="M2.5 6.2 10 2.5l7.5 3.7v7.6L10 17.5l-7.5-3.7z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M2.7 6.4 10 10l7.3-3.6M10 10v7.4" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path
+        d="M2.5 6.2 10 2.5l7.5 3.7v7.6L10 17.5l-7.5-3.7z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M2.7 6.4 10 10l7.3-3.6M10 10v7.4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function OrdersIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path d="M4 3.5h12v14l-3-1.8-3 1.8-3-1.8-3 1.8z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M7 7.5h6M7 10.5h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M4 3.5h12v14l-3-1.8-3 1.8-3-1.8-3 1.8z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7 7.5h6M7 10.5h6"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function TruckIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path d="M2.5 5.5h8v7h-8z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M10.5 8.5h3.3L16 11v1.5h-5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <circle cx="5.5" cy="14" r="1.4" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M2.5 5.5h8v7h-8z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.5 8.5h3.3L16 11v1.5h-5.5z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="5.5"
+        cy="14"
+        r="1.4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
       <circle cx="13" cy="14" r="1.4" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   );
@@ -161,7 +235,12 @@ function TruckIcon(props: React.SVGProps<SVGSVGElement>) {
 function PinIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path d="M10 17.5S15.5 12 15.5 8a5.5 5.5 0 0 0-11 0c0 4 5.5 9.5 5.5 9.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path
+        d="M10 17.5S15.5 12 15.5 8a5.5 5.5 0 0 0-11 0c0 4 5.5 9.5 5.5 9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
       <circle cx="10" cy="8" r="2" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   );
@@ -169,8 +248,18 @@ function PinIcon(props: React.SVGProps<SVGSVGElement>) {
 function ReceiptIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path d="M5 2.5h10v15l-2-1.3-1.5 1.3-1.5-1.3-1.5 1.3-1.5-1.3-2 1.3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M7.5 6.5h5M7.5 9.5h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M5 2.5h10v15l-2-1.3-1.5 1.3-1.5-1.3-1.5 1.3-1.5-1.3-2 1.3z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.5 6.5h5M7.5 9.5h5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -190,22 +279,43 @@ function GearIcon(props: React.SVGProps<SVGSVGElement>) {
 function MenuIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" width={18} height={18} {...props}>
-      <path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M3 5.5h14M3 10h14M3 14.5h14"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" width={18} height={18} {...props}>
-      <path d="M5 5l10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M5 5l10 10M15 5 5 15"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" width={17} height={17} {...props}>
-      <path d="M7.5 17.5H4a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1h3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M13 13.5 17 10l-4-3.5M17 10H7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M7.5 17.5H4a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1h3.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M13 13.5 17 10l-4-3.5M17 10H7.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
