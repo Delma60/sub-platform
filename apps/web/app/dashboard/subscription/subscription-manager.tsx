@@ -48,13 +48,18 @@ export function SubscriptionManager({
       }
       router.refresh();
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setLoading(null);
     }
   }
 
-  async function runAction(action: "pause" | "resume" | "cancel" | "change_plan", planId?: string) {
+  async function runAction(
+    action: "pause" | "resume" | "cancel" | "change_plan",
+    planId?: string,
+  ) {
     if (!subscription) return;
     setLoading(planId ?? action);
     setError(null);
@@ -62,7 +67,9 @@ export function SubscriptionManager({
       const res = await fetch(`/api/subscriptions/${subscription.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(planId ? { action: "change_plan", planId } : { action }),
+        body: JSON.stringify(
+          planId ? { action: "change_plan", planId } : { action },
+        ),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -71,7 +78,9 @@ export function SubscriptionManager({
       }
       router.refresh();
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setLoading(null);
     }
@@ -83,16 +92,22 @@ export function SubscriptionManager({
         <div className="rounded-3xl border border-[#E4DCC8] bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.26em] text-[#6B6558]">Current plan</p>
+              <p className="text-xs uppercase tracking-[0.26em] text-[#6B6558]">
+                Current plan
+              </p>
               <p className="mt-2 flex items-center gap-2 text-xl font-semibold text-[#17251C]">
                 {currentPlanName} <StatusBadge status={subscription.status} />
               </p>
               <p className="mt-1 text-sm text-[#6B6558]">
-                Next delivery: {new Date(subscription.nextDeliveryDate).toLocaleDateString("en-NG", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })}
+                Next delivery:{" "}
+                {new Date(subscription.nextDeliveryDate).toLocaleDateString(
+                  "en-NG",
+                  {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  },
+                )}
               </p>
             </div>
 
@@ -127,7 +142,11 @@ export function SubscriptionManager({
         </div>
       )}
 
-      {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && (
+        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
 
       <div className="grid gap-6 md:grid-cols-3">
         {plans.map((plan) => {
@@ -136,7 +155,9 @@ export function SubscriptionManager({
             <div
               key={plan.id}
               className={`rounded-2xl bg-white p-8 ${
-                isCurrent ? "border-2 border-[#24402F] shadow-md" : "border border-[#E4DCC8]"
+                isCurrent
+                  ? "border-2 border-[#24402F] shadow-md"
+                  : "border border-[#E4DCC8]"
               }`}
             >
               {isCurrent && (
@@ -144,12 +165,17 @@ export function SubscriptionManager({
                   Current plan
                 </span>
               )}
-              <h3 className="font-display text-2xl text-[#17251C]">{plan.name}</h3>
+              <h3 className="font-display text-2xl text-[#17251C]">
+                {plan.name}
+              </h3>
               <p className="mt-6">
                 <span className="font-display text-4xl text-[#17251C]">
                   ₦{plan.price.toLocaleString()}
                 </span>
-                <span className="text-sm text-[#6B6558]"> / {plan.frequency}</span>
+                <span className="text-sm text-[#6B6558]">
+                  {" "}
+                  / {plan.frequency}
+                </span>
               </p>
               <ul className="mt-6 space-y-3">
                 {plan.features.map((feature) => (
@@ -162,7 +188,9 @@ export function SubscriptionManager({
               {!isCurrent && (
                 <button
                   onClick={() =>
-                    subscription ? runAction("change_plan", plan.id) : subscribe(plan.id)
+                    subscription
+                      ? runAction("change_plan", plan.id)
+                      : subscribe(plan.id)
                   }
                   disabled={loading !== null}
                   className="mt-8 block w-full rounded-md bg-[#24402F] px-6 py-3 text-sm font-medium text-[#FAF6EF] transition hover:bg-[#1a2f22] disabled:opacity-60"
@@ -170,8 +198,8 @@ export function SubscriptionManager({
                   {loading === plan.id
                     ? "Updating…"
                     : subscription
-                    ? "Switch to this plan"
-                    : "Choose plan"}
+                      ? "Switch to this plan"
+                      : "Choose plan"}
                 </button>
               )}
             </div>

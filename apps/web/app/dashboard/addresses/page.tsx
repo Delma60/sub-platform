@@ -56,11 +56,14 @@ export default function AddressesPage() {
     setError(null);
 
     try {
-      const res = await fetch(editingId ? `/api/addresses/${editingId}` : "/api/addresses", {
-        method: editingId ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const res = await fetch(
+        editingId ? `/api/addresses/${editingId}` : "/api/addresses",
+        {
+          method: editingId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        },
+      );
       const json = await res.json();
       if (!res.ok || !json.success) {
         setError(json.error ?? "Couldn't save address. Please try again.");
@@ -69,7 +72,9 @@ export default function AddressesPage() {
       cancelEdit();
       load();
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -104,8 +109,12 @@ export default function AddressesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs uppercase tracking-[0.26em] text-[#BC8A31]">Addresses</p>
-        <h1 className="mt-2 font-display text-3xl text-[#17251C]">Address book</h1>
+        <p className="text-xs uppercase tracking-[0.26em] text-[#BC8A31]">
+          Addresses
+        </p>
+        <h1 className="mt-2 font-display text-3xl text-[#17251C]">
+          Address book
+        </h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
@@ -114,7 +123,9 @@ export default function AddressesPage() {
             <p className="text-sm text-[#6B6558]">Loading…</p>
           ) : addresses.length === 0 ? (
             <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#E4DCC8] py-14 text-center">
-              <p className="text-sm font-medium text-[#17251C]">No addresses yet</p>
+              <p className="text-sm font-medium text-[#17251C]">
+                No addresses yet
+              </p>
               <p className="max-w-xs text-sm text-[#6B6558]">
                 Add a delivery address so we know where to send your box.
               </p>
@@ -122,7 +133,10 @@ export default function AddressesPage() {
           ) : (
             <div className="flex flex-col divide-y divide-[#E4DCC8]">
               {addresses.map((address) => (
-                <div key={address.id} className="flex items-start justify-between gap-3 py-4">
+                <div
+                  key={address.id}
+                  className="flex items-start justify-between gap-3 py-4"
+                >
                   <div>
                     <p className="flex items-center gap-2 text-sm font-medium text-[#17251C]">
                       {address.label}
@@ -134,19 +148,29 @@ export default function AddressesPage() {
                     </p>
                     <p className="mt-1 text-sm text-[#6B6558]">
                       {address.line1}
-                      {address.line2 ? `, ${address.line2}` : ""}, {address.city}, {address.state}
+                      {address.line2 ? `, ${address.line2}` : ""},{" "}
+                      {address.city}, {address.state}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2 text-sm">
-                    <button onClick={() => startEdit(address)} className="text-[#24402F] underline">
+                    <button
+                      onClick={() => startEdit(address)}
+                      className="text-[#24402F] underline"
+                    >
                       Edit
                     </button>
                     {!address.isDefault && (
-                      <button onClick={() => makeDefault(address.id)} className="text-[#6B6558] underline">
+                      <button
+                        onClick={() => makeDefault(address.id)}
+                        className="text-[#6B6558] underline"
+                      >
                         Make default
                       </button>
                     )}
-                    <button onClick={() => handleDelete(address.id)} className="text-red-700 underline">
+                    <button
+                      onClick={() => handleDelete(address.id)}
+                      className="text-red-700 underline"
+                    >
                       Delete
                     </button>
                   </div>
@@ -186,7 +210,9 @@ export default function AddressesPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Address line 2 (optional)</label>
+            <label className="text-sm font-medium">
+              Address line 2 (optional)
+            </label>
             <input
               value={form.line2}
               onChange={(e) => setForm({ ...form, line2: e.target.value })}
@@ -215,7 +241,11 @@ export default function AddressesPage() {
             </div>
           </div>
 
-          {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && (
+            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          )}
 
           <div className="mt-2 flex gap-2">
             <button
