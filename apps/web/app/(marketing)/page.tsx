@@ -1,70 +1,84 @@
 import Link from "next/link";
 
+const WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DELIVERY_INDEX = 3;
+
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#FAF6EF] text-[#17251C] font-body antialiased">
-      <header className="sticky top-0 z-50 border-b border-[#E4DCC8] bg-[#FAF6EF]/95 backdrop-blur">
+    <main className="min-h-screen bg-[var(--paper)] text-[var(--ink)] antialiased">
+      <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--paper)]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <Link href="/" className="font-display text-2xl text-[#17251C]">
+          <Link
+            href="/"
+            className="text-[15px] font-semibold tracking-[-0.01em]"
+          >
             Oja
           </Link>
 
           <input type="checkbox" id="nav-toggle" className="peer hidden" />
 
-          <nav className="hidden items-center gap-9 text-[13px] font-medium uppercase tracking-[0.08em] text-[#6B6558] md:flex">
-            <a href="#how-it-works" className="transition hover:text-[#17251C]">
+          <nav className="hidden items-center gap-8 text-[13px] text-[var(--ink-soft)] md:flex">
+            <a
+              href="#how-it-works"
+              className="transition hover:text-[var(--ink)]"
+            >
               How it works
             </a>
-            <a href="#whats-inside" className="transition hover:text-[#17251C]">
+            <a
+              href="#whats-inside"
+              className="transition hover:text-[var(--ink)]"
+            >
               What's inside
             </a>
-            <a href="#plans" className="transition hover:text-[#17251C]">
+            <a href="#plans" className="transition hover:text-[var(--ink)]">
               Plans
             </a>
-            <a href="#faq" className="transition hover:text-[#17251C]">
+            <a href="#faq" className="transition hover:text-[var(--ink)]">
               FAQ
             </a>
           </nav>
 
-          <Link
-            href="/auth/login"
-            className="hidden text-[13px] font-medium text-[#17251C] transition hover:text-[#24402F] md:inline-block"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/auth/register"
-            className="hidden rounded-md bg-[#24402F] px-5 py-2.5 text-[13px] font-medium text-[#FAF6EF] transition hover:bg-[#1a2f22] md:inline-block"
-          >
-            Start your subscription
-          </Link>
+          <div className="hidden items-center gap-6 md:flex">
+            <Link
+              href="/auth/login"
+              className="text-[13px] font-medium text-[var(--ink)] transition hover:text-[var(--accent)]"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/auth/register"
+              className="rounded-md bg-[var(--accent)] px-5 py-2.5 text-[13px] font-medium text-white transition hover:bg-[#243020]"
+            >
+              Start your subscription
+            </Link>
+          </div>
 
           <label
             htmlFor="nav-toggle"
             className="flex cursor-pointer flex-col gap-1.5 md:hidden"
             aria-label="Toggle menu"
           >
-            <span className="h-px w-6 bg-[#17251C]" />
-            <span className="h-px w-6 bg-[#17251C]" />
-            <span className="h-px w-6 bg-[#17251C]" />
+            <span className="h-px w-6 bg-[var(--ink)]" />
+            <span className="h-px w-6 bg-[var(--ink)]" />
+            <span className="h-px w-6 bg-[var(--ink)]" />
           </label>
         </div>
 
-        <div className="hidden max-h-0 overflow-hidden border-t border-[#E4DCC8] px-6 transition-all peer-checked:block peer-checked:max-h-80 peer-checked:py-5 md:hidden">
-          <nav className="flex flex-col gap-4 text-sm text-[#17251C]">
+        <div className="hidden max-h-0 overflow-hidden border-t border-[var(--line)] px-6 transition-all peer-checked:block peer-checked:max-h-80 peer-checked:py-5 md:hidden">
+          <nav className="flex flex-col gap-4 text-sm text-[var(--ink-soft)]">
             <a href="#how-it-works">How it works</a>
             <a href="#whats-inside">What's inside</a>
             <a href="#plans">Plans</a>
             <a href="#faq">FAQ</a>
             <Link
               href="/auth/login"
-              className="mt-2 text-sm font-medium text-[#17251C] hover:text-[#24402F]"
+              className="mt-2 text-sm font-medium text-[var(--ink)] hover:text-[var(--accent)]"
             >
               Log in
             </Link>
             <Link
               href="/auth/register"
-              className="mt-2 rounded-md bg-[#24402F] px-5 py-3 text-center text-sm font-medium text-[#FAF6EF]"
+              className="mt-2 rounded-md bg-[var(--accent)] px-5 py-3 text-center text-sm font-medium text-white"
             >
               Start your subscription
             </Link>
@@ -72,83 +86,83 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="px-6 pb-20 pt-16 md:pb-28 md:pt-24">
+      <section className="px-6 pb-24 pt-20 md:pb-32 md:pt-28">
         <div className="mx-auto grid max-w-6xl items-center gap-16 md:grid-cols-2">
           <div>
-            <p className="text-[13px] font-medium uppercase tracking-[0.15em] text-[#BC8A31]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--ink-soft)]">
               Weekly market delivery
             </p>
 
-            <h1 className="mt-5 font-display text-[2.75rem] leading-[1.08] text-[#17251C] sm:text-6xl">
-              Fresh foodstuff,
-              <br />
-              <span className="italic">sourced and delivered</span>
-              <br />
-              for you.
+            <h1 className="mt-5 text-[2.75rem] font-semibold leading-[1.03] tracking-[-0.02em] sm:text-[3.75rem]">
+              Fresh foodstuff, delivered on schedule.
             </h1>
 
-            <p className="mt-6 max-w-md text-[17px] leading-relaxed text-[#6B6558]">
-              Tomatoes, peppers, onions, yam, garri and more — bought directly
-              from farms and wholesalers across Ogun, Oyo and Lagos, then
-              delivered to your door on a schedule you choose.
+            <p className="mt-6 max-w-md text-[16px] leading-relaxed text-[var(--ink-soft)]">
+              Tomatoes, peppers, onions, yam, garri and more — sourced from
+              farms and wholesalers across Ogun, Oyo and Lagos, packed and
+              delivered on the day you choose.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-4">
+            <div className="mt-9 flex flex-wrap items-center gap-6">
               <Link
                 href="#plans"
-                className="rounded-md bg-[#24402F] px-7 py-3.5 text-sm font-medium text-[#FAF6EF] transition hover:bg-[#1a2f22]"
+                className="rounded-md bg-[var(--accent)] px-7 py-3.5 text-sm font-medium text-white transition hover:bg-[#243020]"
               >
                 See subscription plans
               </Link>
-              <Link
+              <a
                 href="#how-it-works"
-                className="rounded-md border border-[#17251C]/15 px-7 py-3.5 text-sm font-medium text-[#17251C] transition hover:bg-[#17251C]/[0.04]"
+                className="text-sm font-medium text-[var(--ink)] underline decoration-[var(--line)] underline-offset-4 transition hover:decoration-[var(--ink)]"
               >
                 How it works
-              </Link>
+              </a>
             </div>
 
-            <div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 border-t border-[#E4DCC8] pt-7 text-[13px] text-[#6B6558]">
-              <span className="flex items-center gap-2">
-                <CheckIcon /> Secure checkout via Flutterwave
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckIcon /> Sourced from 40+ farms directly
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckIcon /> Pause or cancel anytime
-              </span>
+            <div className="mt-14 grid max-w-md grid-cols-3 gap-6 border-t border-[var(--line)] pt-6">
+              <Stat label="Farms sourced from" value="40+" />
+              <Stat label="Items per box" value="6–25" />
+              <Stat label="Cancel anytime" value="Yes" />
             </div>
           </div>
 
-          <div className="relative">
-            <div className="grid grid-cols-3 grid-rows-3 gap-3">
-              <div className="col-span-2 row-span-2 rounded-2xl bg-[#DCD0B7] shadow-sm" />
-              <div className="rounded-2xl bg-[#24402F] shadow-sm" />
-              <div className="rounded-2xl bg-[#FAF6EF] shadow-sm" />
-              <div className="col-span-2 rounded-2xl bg-[#BC8A31]/10 shadow-sm ring-1 ring-[#BC8A31]/15" />
-              <div className="rounded-2xl bg-[#17251C] shadow-sm" />
-              <div className="col-span-2 rounded-2xl bg-[#FAF6EF] shadow-sm" />
-            </div>
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-8">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--ink-soft)]">
+              This week's box
+            </p>
+            <p className="mt-2 text-lg font-semibold text-[var(--ink)]">
+              Family plan · 15 items
+            </p>
 
-            <div className="absolute -bottom-5 left-5 rounded-lg border border-[#E4DCC8] bg-[#FAF6EF] px-5 py-3 shadow-md">
-              <p className="text-[11px] uppercase tracking-[0.1em] text-[#6B6558]">
-                This week's box
-              </p>
-              <p className="font-display text-lg text-[#17251C]">
-                Family Plan — 15 items
-              </p>
-            </div>
+            <WeekTrack deliveryIndex={DELIVERY_INDEX} />
+
+            <ul className="mt-8 flex flex-col divide-y divide-[var(--line)]">
+              {[
+                "Tomatoes & pepper mix",
+                "Rice, beans & garri",
+                "Palm oil & crayfish",
+              ].map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center gap-2.5 py-3 text-[14px] text-[var(--ink)]"
+                >
+                  <span className="h-1 w-1 rounded-full bg-[var(--accent)]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="bg-[#17251C] px-6 py-24">
+      <section
+        id="how-it-works"
+        className="border-t border-[var(--line)] px-6 py-24"
+      >
         <div className="mx-auto max-w-6xl">
-          <p className="text-[13px] font-medium uppercase tracking-[0.15em] text-[#BC8A31]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--ink-soft)]">
             Process
           </p>
-          <h2 className="mt-3 font-display text-3xl text-[#FAF6EF] sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.015em] sm:text-4xl">
             How it works
           </h2>
 
@@ -170,14 +184,14 @@ export default function HomePage() {
                 copy: "Your box arrives on your chosen day. Skip, pause, or swap items anytime.",
               },
             ].map((step) => (
-              <div key={step.n} className="border-t border-[#FAF6EF]/15 pt-6">
-                <span className="font-display text-2xl text-[#BC8A31]">
+              <div key={step.n} className="border-t border-[var(--line)] pt-6">
+                <span className="text-[13px] text-[var(--ink-soft)]">
                   {step.n}
                 </span>
-                <h3 className="mt-4 font-display text-xl text-[#FAF6EF]">
+                <h3 className="mt-4 text-lg font-semibold text-[var(--ink)]">
                   {step.title}
                 </h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-[#FAF6EF]/55">
+                <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink-soft)]">
                   {step.copy}
                 </p>
               </div>
@@ -186,22 +200,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="whats-inside" className="px-6 py-24">
+      <section
+        id="whats-inside"
+        className="border-t border-[var(--line)] px-6 py-24"
+      >
         <div className="mx-auto max-w-6xl">
           <div className="max-w-xl">
-            <p className="text-[13px] font-medium uppercase tracking-[0.15em] text-[#BC8A31]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--ink-soft)]">
               Contents
             </p>
-            <h2 className="mt-3 font-display text-3xl text-[#17251C] sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.015em] sm:text-4xl">
               What's in the box
             </h2>
-            <p className="mt-4 max-w-xl text-[#6B6558]">
+            <p className="mt-4 text-[var(--ink-soft)]">
               Every plan is built around these categories. Once you subscribe,
               you can swap items to fit your kitchen.
             </p>
           </div>
 
-          <div className="mt-14 grid gap-10 border-t border-[#E4DCC8] pt-10 md:grid-cols-3">
+          <div className="mt-14 grid gap-10 border-t border-[var(--line)] pt-10 md:grid-cols-3">
             {[
               {
                 cat: "Vegetables",
@@ -229,16 +246,15 @@ export default function HomePage() {
               },
             ].map((group) => (
               <div key={group.cat}>
-                <h3 className="font-display text-lg text-[#17251C]">
+                <h3 className="text-[15px] font-semibold text-[var(--ink)]">
                   {group.cat}
                 </h3>
                 <ul className="mt-4 space-y-3">
                   {group.items.map((item) => (
                     <li
                       key={item}
-                      className="flex items-center gap-2.5 text-[15px] text-[#6B6558]"
+                      className="text-[15px] text-[var(--ink-soft)]"
                     >
-                      <span className="h-1 w-1 rounded-full bg-[#BC8A31]" />
                       {item}
                     </li>
                   ))}
@@ -249,15 +265,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section
-        id="plans"
-        className="border-t border-[#E4DCC8] bg-[#F2ECDE] px-6 py-24"
-      >
+      <section id="plans" className="border-t border-[var(--line)] px-6 py-24">
         <div className="mx-auto max-w-6xl">
-          <p className="text-[13px] font-medium uppercase tracking-[0.15em] text-[#BC8A31]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--ink-soft)]">
             Pricing
           </p>
-          <h2 className="mt-3 font-display text-3xl text-[#17251C] sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.015em] sm:text-4xl">
             Plans for every kitchen
           </h2>
 
@@ -301,34 +314,39 @@ export default function HomePage() {
             ].map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-2xl bg-[#FAF6EF] p-8 ${
+                className={`rounded-lg bg-[var(--surface)] p-8 ${
                   plan.highlight
-                    ? "border-2 border-[#24402F] shadow-md"
-                    : "border border-[#E4DCC8]"
+                    ? "border border-[var(--accent)]"
+                    : "border border-[var(--line)]"
                 }`}
               >
                 {plan.highlight && (
-                  <span className="mb-4 inline-block rounded-full bg-[#BC8A31] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#FAF6EF]">
-                    Most popular
+                  <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-[var(--accent)]">
+                    Popular
                   </span>
                 )}
-                <h3 className="font-display text-2xl text-[#17251C]">
+                <h3 className="mt-3 text-xl font-semibold text-[var(--ink)]">
                   {plan.name}
                 </h3>
-                <p className="mt-2 text-sm text-[#6B6558]">{plan.desc}</p>
+                <p className="mt-2 text-sm text-[var(--ink-soft)]">
+                  {plan.desc}
+                </p>
 
                 <p className="mt-6">
-                  <span className="font-display text-4xl text-[#17251C]">
+                  <span className="text-4xl font-semibold tracking-[-0.02em] text-[var(--ink)]">
                     {plan.price}
                   </span>
-                  <span className="text-sm text-[#6B6558]"> / month</span>
+                  <span className="text-sm text-[var(--ink-soft)]">
+                    {" "}
+                    / month
+                  </span>
                 </p>
 
                 <ul className="mt-6 space-y-3">
                   {plan.features.map((f) => (
                     <li
                       key={f}
-                      className="flex items-start gap-2.5 text-sm text-[#17251C]"
+                      className="flex items-start gap-2.5 text-sm text-[var(--ink)]"
                     >
                       <CheckIcon /> {f}
                     </li>
@@ -339,8 +357,8 @@ export default function HomePage() {
                   href="/auth/register"
                   className={`mt-8 block rounded-md px-6 py-3 text-center text-sm font-medium transition ${
                     plan.highlight
-                      ? "bg-[#24402F] text-[#FAF6EF] hover:bg-[#1a2f22]"
-                      : "border border-[#17251C]/15 text-[#17251C] hover:bg-[#17251C]/[0.04]"
+                      ? "bg-[var(--accent)] text-white hover:bg-[#243020]"
+                      : "border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--accent-soft)]"
                   }`}
                 >
                   Choose {plan.name}
@@ -351,16 +369,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#17251C] px-6 py-24">
+      <section className="border-t border-[var(--line)] px-6 py-24">
         <div className="mx-auto max-w-6xl">
-          <p className="text-[13px] font-medium uppercase tracking-[0.15em] text-[#BC8A31]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--ink-soft)]">
             Feedback
           </p>
-          <h2 className="mt-3 font-display text-3xl text-[#FAF6EF] sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.015em] sm:text-4xl">
             From kitchens like yours
           </h2>
 
-          <div className="mt-14 grid gap-8 md:grid-cols-3">
+          <div className="mt-14 grid gap-10 md:grid-cols-3">
             {[
               {
                 quote:
@@ -383,12 +401,12 @@ export default function HomePage() {
             ].map((t) => (
               <figure
                 key={t.name}
-                className="border-t border-[#FAF6EF]/15 pt-6"
+                className="border-t border-[var(--line)] pt-6"
               >
-                <blockquote className="font-display text-lg italic leading-relaxed text-[#FAF6EF]/90">
-                  {t.quote}
+                <blockquote className="text-[16px] leading-relaxed text-[var(--ink-soft)]">
+                  "{t.quote}"
                 </blockquote>
-                <figcaption className="mt-5 text-sm text-[#FAF6EF]/50">
+                <figcaption className="mt-5 text-sm text-[var(--ink-soft)]">
                   {t.name} — {t.loc}
                 </figcaption>
               </figure>
@@ -397,18 +415,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#24402F] px-6 py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="font-display text-3xl text-[#FAF6EF] sm:text-4xl">
+      <section className="border-y border-[var(--line)] px-6 py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-semibold tracking-[-0.015em] sm:text-4xl">
             Ready to skip your next market run?
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-[#FAF6EF]/70">
+          <p className="mx-auto mt-3 max-w-md text-[var(--ink-soft)]">
             Set up your subscription in under three minutes. Cancel or pause
             anytime.
           </p>
           <Link
             href="#plans"
-            className="mt-8 inline-block rounded-md bg-[#BC8A31] px-8 py-4 text-sm font-medium text-[#17251C] transition hover:bg-[#a87b2a]"
+            className="mt-8 inline-block rounded-md bg-[var(--accent)] px-8 py-4 text-sm font-medium text-white transition hover:bg-[#243020]"
           >
             Start your subscription
           </Link>
@@ -416,50 +434,82 @@ export default function HomePage() {
       </section>
 
       <footer id="faq" className="px-6 py-14">
-        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-10 border-b border-[#E4DCC8] pb-10 md:flex-row">
+        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-10 pb-10 md:flex-row">
           <div className="max-w-xs">
-            <span className="font-display text-xl text-[#17251C]">Oja</span>
-            <p className="mt-2 text-sm text-[#6B6558]">
+            <span className="text-lg font-semibold">Oja</span>
+            <p className="mt-2 text-sm text-[var(--ink-soft)]">
               Fresh foodstuff, sourced direct and delivered on your schedule.
             </p>
           </div>
-          <div className="flex gap-16 text-sm text-[#6B6558]">
+          <div className="flex gap-16 text-sm text-[var(--ink-soft)]">
             <div className="flex flex-col gap-2.5">
-              <span className="text-[11px] uppercase tracking-wide text-[#6B6558]/70">
+              <span className="text-[11px] uppercase tracking-wide text-[var(--ink-soft)]">
                 Product
               </span>
-              <a href="#how-it-works" className="hover:text-[#17251C]">
+              <a href="#how-it-works" className="hover:text-[var(--ink)]">
                 How it works
               </a>
-              <a href="#plans" className="hover:text-[#17251C]">
+              <a href="#plans" className="hover:text-[var(--ink)]">
                 Plans
               </a>
-              <a href="#whats-inside" className="hover:text-[#17251C]">
+              <a href="#whats-inside" className="hover:text-[var(--ink)]">
                 What's inside
               </a>
             </div>
             <div className="flex flex-col gap-2.5">
-              <span className="text-[11px] uppercase tracking-wide text-[#6B6558]/70">
+              <span className="text-[11px] uppercase tracking-wide text-[var(--ink-soft)]">
                 Company
               </span>
-              <a href="/about" className="hover:text-[#17251C]">
+              <a href="/about" className="hover:text-[var(--ink)]">
                 About
               </a>
-              <a href="/contact" className="hover:text-[#17251C]">
+              <a href="/contact" className="hover:text-[var(--ink)]">
                 Contact
               </a>
-              <a href="/terms" className="hover:text-[#17251C]">
+              <a href="/terms" className="hover:text-[var(--ink)]">
                 Terms
               </a>
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-6 flex max-w-6xl flex-col justify-between gap-3 text-xs text-[#6B6558]/70 sm:flex-row">
+        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-3 border-t border-[var(--line)] pt-6 text-xs text-[var(--ink-soft)] sm:flex-row">
           <p>© {new Date().getFullYear()} Oja. All rights reserved.</p>
           <p>Payments secured by Flutterwave</p>
         </div>
       </footer>
     </main>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-lg font-semibold text-[var(--ink)]">{value}</p>
+      <p className="mt-1 text-[12px] text-[var(--ink-soft)]">{label}</p>
+    </div>
+  );
+}
+
+function WeekTrack({ deliveryIndex }: { deliveryIndex: number }) {
+  return (
+    <div className="mt-6">
+      <div className="relative h-px bg-[var(--line)]">
+        <div
+          className="absolute -top-[3px] h-1.5 w-1.5 rounded-full bg-[var(--accent)]"
+          style={{ left: `${(deliveryIndex / (WEEK.length - 1)) * 100}%` }}
+        />
+      </div>
+      <div className="mt-2 flex justify-between text-[10px] uppercase tracking-[0.08em] text-[var(--ink-soft)]">
+        {WEEK.map((day, i) => (
+          <span
+            key={day}
+            className={i === deliveryIndex ? "text-[var(--ink)]" : ""}
+          >
+            {day}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -470,7 +520,7 @@ function CheckIcon() {
       height="16"
       viewBox="0 0 16 16"
       fill="none"
-      className="shrink-0 text-[#24402F]"
+      className="mt-0.5 shrink-0 text-[var(--accent)]"
     >
       <path
         d="M3 8.5L6 11.5L13 4.5"

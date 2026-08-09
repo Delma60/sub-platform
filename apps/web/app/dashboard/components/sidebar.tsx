@@ -36,14 +36,14 @@ export function DashboardSidebar({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-[#FAF6EF]/10 bg-[#FAF6EF] px-4 py-3 md:hidden">
-        <Link href="/" className="font-display text-xl text-[#17251C]">
+      <div className="flex items-center justify-between border-b border-[var(--line)] bg-[var(--paper)] px-4 py-3 md:hidden">
+        <Link href="/" className="text-lg font-semibold text-[var(--ink)]">
           Oja
         </Link>
         <button
           onClick={() => setOpen(true)}
           aria-label="Open menu"
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E4DCC8] text-[#17251C]"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-[var(--line)] text-[var(--ink)]"
         >
           <MenuIcon />
         </button>
@@ -51,30 +51,30 @@ export function DashboardSidebar({
 
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-[#17251C]/40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/20 md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col bg-[#17251C] px-4 py-6 transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 flex-col bg-[var(--surface)] px-4 py-6 transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-2">
-          <Link href="/" className="font-display text-xl text-[#FAF6EF]">
+          <Link href="/" className="text-lg font-semibold text-[var(--ink)]">
             Oja
           </Link>
           <button
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="text-[#FAF6EF]/60 md:hidden"
+            className="text-[var(--ink-soft)] md:hidden"
           >
             <CloseIcon />
           </button>
         </div>
 
-        <nav className="mt-9 flex flex-1 flex-col gap-0.5">
+        <nav className="mt-9 flex flex-1 flex-col gap-1">
           {nav.map((item) => {
             const active = isActive(item.href, item.exact);
             const Icon = item.icon;
@@ -83,15 +83,15 @@ export function DashboardSidebar({
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-[14px] transition ${
+                className={`relative flex items-center gap-3 rounded-md px-3 py-2.5 text-[14px] transition ${
                   active
-                    ? "bg-[#FAF6EF]/[0.06] text-[#FAF6EF]"
-                    : "text-[#FAF6EF]/60 hover:bg-[#FAF6EF]/[0.04] hover:text-[#FAF6EF]/90"
+                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                    : "text-[var(--ink-soft)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
                 }`}
               >
                 <span
                   className={`absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full transition ${
-                    active ? "bg-[#BC8A31]" : "bg-transparent"
+                    active ? "bg-[var(--accent)]" : "bg-transparent"
                   }`}
                 />
                 <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -101,15 +101,15 @@ export function DashboardSidebar({
           })}
         </nav>
 
-        <div className="mt-auto flex items-center gap-3 border-t border-[#FAF6EF]/10 px-2 pt-5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#BC8A31]/20 text-[13px] font-medium text-[#BC8A31]">
+        <div className="mt-auto flex items-center gap-3 border-t border-[var(--line)] px-2 pt-5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[13px] font-medium text-[var(--accent)]">
             {initials || "?"}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-medium text-[#FAF6EF]">
+            <p className="truncate text-[13px] font-medium text-[var(--ink)]">
               {user.name}
             </p>
-            <p className="truncate text-[12px] text-[#FAF6EF]/50">
+            <p className="truncate text-[12px] text-[var(--ink-soft)]">
               {user.email}
             </p>
           </div>
@@ -117,7 +117,7 @@ export function DashboardSidebar({
             <button
               type="submit"
               aria-label="Sign out"
-              className="text-[#FAF6EF]/40 transition hover:text-[#FAF6EF]"
+              className="text-[var(--ink-soft)] transition hover:text-[var(--ink)]"
             >
               <LogoutIcon />
             </button>

@@ -1,17 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAF6EF;
-  --foreground: #17251C;
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
+  --paper: #F7F7F3;
+  --surface: #FFFFFF;
+  --ink: #15150F;
+  --ink-soft: #706C60;
+  --line: #E6E3DA;
+  --accent: #2E3B29;
+  --accent-soft: #EDF0E7;
+  --font-sans: var(--font-sans);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-body);
-  --font-serif: var(--font-display);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-sans);
 }
 
 html {
@@ -21,10 +29,11 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body), system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -36,4 +45,9 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
