@@ -1,7 +1,4 @@
-// TEMPORARY in-memory store.
-// TODO: replace with real persistence once Neon + Prisma/Drizzle is wired up
-// (see instructions.md §3 / TODO.web.md §2). Data resets on every server
-// restart or redeploy — do not rely on this beyond local dev.
+import { prisma } from "./prisma";
 
 export type StoredUser = {
   id: string;
@@ -11,22 +8,26 @@ export type StoredUser = {
   createdAt: string;
 };
 
-const users = new Map<string, StoredUser>(); // keyed by lowercased email
-
-export function findUserByEmail(email: string) {
-  return users.get(email.toLowerCase()) ?? null;
+export async function findUserByEmail(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+  return user ?? null;
 }
 
-export function findUserById(id: string) {
-  return Array.from(users.values()).find((user) => user.id === id) ?? null;
+export async function findUserById(id: string) {
+  const user = await prisma.user.findUnique({
+    where: { id },
+  });
+  return user ?? null;
 }
 
-export function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
-  const record: StoredUser = {
-    ...user,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  };
-  users.set(user.email.toLowerCase(), record);
-  return record;
+export async function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
+  return prisma.user.create({
+    data: {
+      name: user.name,
+      email: user.email.toLowerCase(),
+      passwordHash: user.passwordHash,
+    },
+  });
 }
