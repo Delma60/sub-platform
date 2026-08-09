@@ -3,24 +3,71 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import {
+  BoxIcon,
+  ChevronIcon,
+  CloseIcon,
+  GearIcon,
+  MenuIcon,
+  OrdersIcon,
+  OverviewIcon,
+  PinIcon,
+  ReceiptIcon,
+  TruckIcon,
+} from "./icons";
+import { LucideIcon } from "lucide-react";
 
-const nav = [
-  { href: "/dashboard", label: "Overview", icon: OverviewIcon, exact: true },
-  { href: "/dashboard/subscription", label: "Subscription", icon: BoxIcon },
-  { href: "/dashboard/orders", label: "Orders", icon: OrdersIcon },
-  { href: "/dashboard/deliveries", label: "Deliveries", icon: TruckIcon },
-  { href: "/dashboard/addresses", label: "Addresses", icon: PinIcon },
-  { href: "/dashboard/payments", label: "Payment history", icon: ReceiptIcon },
-  { href: "/dashboard/settings", label: "Settings", icon: GearIcon },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+};
+
+const NAV_GROUPS: { label: string | null; items: NavItem[] }[] = [
+  {
+    label: null,
+    items: [
+      {
+        href: "/dashboard",
+        label: "Overview",
+        icon: OverviewIcon,
+        exact: true,
+      },
+    ],
+  },
+  {
+    label: "Manage",
+    items: [
+      { href: "/dashboard/subscription", label: "Subscription", icon: BoxIcon },
+      { href: "/dashboard/orders", label: "Orders", icon: OrdersIcon },
+      { href: "/dashboard/deliveries", label: "Deliveries", icon: TruckIcon },
+      { href: "/dashboard/addresses", label: "Addresses", icon: PinIcon },
+      {
+        href: "/dashboard/payments",
+        label: "Payment history",
+        icon: ReceiptIcon,
+      },
+    ],
+  },
+  {
+    label: "Account",
+    items: [{ href: "/dashboard/settings", label: "Settings", icon: GearIcon }],
+  },
 ];
+
+const WEEK_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
 
 export function DashboardSidebar({
   user,
+  nextDelivery,
 }: {
   user: { name: string; email: string };
+  nextDelivery: { dayIndex: number; dateLabel: string } | null;
 }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const initials = user.name
     .split(" ")
@@ -37,11 +84,14 @@ export function DashboardSidebar({
   return (
     <>
       <div className="flex items-center justify-between border-b border-[var(--line)] bg-[var(--paper)] px-4 py-3 md:hidden">
-        <Link href="/" className="text-lg font-semibold text-[var(--ink)]">
+        <Link
+          href="/"
+          className="text-lg font-semibold tracking-[-0.01em] text-[var(--ink)]"
+        >
           Oja
         </Link>
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => setMobileOpen(true)}
           aria-label="Open menu"
           className="flex h-9 w-9 items-center justify-center rounded-md border border-[var(--line)] text-[var(--ink)]"
         >
@@ -49,257 +99,153 @@ export function DashboardSidebar({
         </button>
       </div>
 
-      {open && (
+      {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 md:hidden"
-          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-40 bg-black/20 transition-opacity md:hidden"
+          onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 flex-col bg-[var(--surface)] px-4 py-6 transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-[var(--line)] bg-[var(--surface)] py-6 transition-all duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        } ${collapsed ? "md:w-[76px]" : "w-64 md:w-64"}`}
       >
-        <div className="flex items-center justify-between px-2">
-          <Link href="/" className="text-lg font-semibold text-[var(--ink)]">
-            Oja
-          </Link>
+        <div
+          className={`flex items-center justify-between ${collapsed ? "px-3" : "px-5"}`}
+        >
+          {!collapsed && (
+            <Link
+              href="/"
+              className="text-lg font-semibold tracking-[-0.01em] text-[var(--ink)]"
+            >
+              Oja
+            </Link>
+          )}
           <button
-            onClick={() => setOpen(false)}
+            onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
             className="text-[var(--ink-soft)] md:hidden"
           >
             <CloseIcon />
           </button>
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="hidden h-7 w-7 items-center justify-center rounded-md text-[var(--ink-soft)] transition hover:bg-[var(--accent-soft)] hover:text-[var(--ink)] md:flex"
+          >
+            <ChevronIcon
+              className={`transition-transform ${collapsed ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
 
-        <nav className="mt-9 flex flex-1 flex-col gap-1">
-          {nav.map((item) => {
-            const active = isActive(item.href, item.exact);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`relative flex items-center gap-3 rounded-md px-3 py-2.5 text-[14px] transition ${
-                  active
-                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                    : "text-[var(--ink-soft)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
-                }`}
-              >
-                <span
-                  className={`absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full transition ${
-                    active ? "bg-[var(--accent)]" : "bg-transparent"
-                  }`}
-                />
-                <Icon className="h-[18px] w-[18px] shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="mt-7 flex flex-1 flex-col overflow-y-auto px-3">
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={gi} className={gi === 0 ? "" : "mt-5"}>
+              {group.label && !collapsed && (
+                <p className="mb-1.5 px-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-soft)]/70">
+                  {group.label}
+                </p>
+              )}
+              <div className="flex flex-col gap-0.5">
+                {group.items.map((item) => {
+                  const active = isActive(item.href, item.exact);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                      title={collapsed ? item.label : undefined}
+                      className={`flex items-center gap-3 rounded-md py-2.5 text-[14px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 ${
+                        collapsed ? "justify-center px-0" : "px-3"
+                      } ${
+                        active
+                          ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                          : "text-[var(--ink-soft)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+                      }`}
+                    >
+                      <Icon className="h-[18px] w-[18px] shrink-0" />
+                      {!collapsed && item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        <div className="mt-auto flex items-center gap-3 border-t border-[var(--line)] px-2 pt-5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[13px] font-medium text-[var(--accent)]">
+        {nextDelivery && !collapsed && (
+          <div className="mx-3 mt-6 rounded-md border border-[var(--line)] p-3">
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-soft)]/80">
+              Next delivery
+            </p>
+            <p className="mt-1 text-[13px] font-medium text-[var(--ink)]">
+              {nextDelivery.dateLabel}
+            </p>
+            <div className="relative mt-3 h-px bg-[var(--line)]">
+              <div
+                className="absolute -top-[3px] h-1.5 w-1.5 rounded-full bg-[var(--accent)]"
+                style={{ left: `${(nextDelivery.dayIndex / 6) * 100}%` }}
+              />
+            </div>
+            <div className="mt-1.5 flex justify-between text-[9px] text-[var(--ink-soft)]">
+              {WEEK_LETTERS.map((letter, i) => (
+                <span
+                  key={i}
+                  className={
+                    i === nextDelivery.dayIndex
+                      ? "font-semibold text-[var(--ink)]"
+                      : ""
+                  }
+                >
+                  {letter}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div
+          className={`mt-6 flex items-center gap-3 border-t border-[var(--line)] pt-5 ${
+            collapsed ? "justify-center px-0" : "px-5"
+          }`}
+        >
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[13px] font-medium text-[var(--accent)]"
+            title={collapsed ? user.name : undefined}
+          >
             {initials || "?"}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-medium text-[var(--ink)]">
-              {user.name}
-            </p>
-            <p className="truncate text-[12px] text-[var(--ink-soft)]">
-              {user.email}
-            </p>
-          </div>
-          <form action="/api/auth/logout" method="POST">
-            <button
-              type="submit"
-              aria-label="Sign out"
-              className="text-[var(--ink-soft)] transition hover:text-[var(--ink)]"
-            >
-              <LogoutIcon />
-            </button>
-          </form>
+          {!collapsed && (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-medium text-[var(--ink)]">
+                  {user.name}
+                </p>
+                <p className="truncate text-[12px] text-[var(--ink-soft)]">
+                  {user.email}
+                </p>
+              </div>
+              <form action="/api/auth/logout" method="POST">
+                <button
+                  type="submit"
+                  aria-label="Sign out"
+                  className="text-[var(--ink-soft)] transition hover:text-[var(--ink)]"
+                >
+                  <LogoutIcon />
+                </button>
+              </form>
+            </>
+          )}
         </div>
       </aside>
     </>
   );
 }
 
-function OverviewIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <rect
-        x="2.5"
-        y="2.5"
-        width="6.5"
-        height="6.5"
-        rx="1.3"
-        stroke="currentColor"
-        strokeWidth="1.4"
-      />
-      <rect
-        x="11"
-        y="2.5"
-        width="6.5"
-        height="9.5"
-        rx="1.3"
-        stroke="currentColor"
-        strokeWidth="1.4"
-      />
-      <rect
-        x="2.5"
-        y="11.5"
-        width="6.5"
-        height="6"
-        rx="1.3"
-        stroke="currentColor"
-        strokeWidth="1.4"
-      />
-      <rect
-        x="11"
-        y="14.5"
-        width="6.5"
-        height="3"
-        rx="1.3"
-        stroke="currentColor"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-function BoxIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path
-        d="M2.5 6.2 10 2.5l7.5 3.7v7.6L10 17.5l-7.5-3.7z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M2.7 6.4 10 10l7.3-3.6M10 10v7.4"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function OrdersIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path
-        d="M4 3.5h12v14l-3-1.8-3 1.8-3-1.8-3 1.8z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7 7.5h6M7 10.5h6"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-function TruckIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path
-        d="M2.5 5.5h8v7h-8z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10.5 8.5h3.3L16 11v1.5h-5.5z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx="5.5"
-        cy="14"
-        r="1.4"
-        stroke="currentColor"
-        strokeWidth="1.4"
-      />
-      <circle cx="13" cy="14" r="1.4" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
-}
-function PinIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path
-        d="M10 17.5S15.5 12 15.5 8a5.5 5.5 0 0 0-11 0c0 4 5.5 9.5 5.5 9.5Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <circle cx="10" cy="8" r="2" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
-}
-function ReceiptIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <path
-        d="M5 2.5h10v15l-2-1.3-1.5 1.3-1.5-1.3-1.5 1.3-1.5-1.3-2 1.3z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7.5 6.5h5M7.5 9.5h5"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-function GearIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" {...props}>
-      <circle cx="10" cy="10" r="2.6" stroke="currentColor" strokeWidth="1.4" />
-      <path
-        d="M10 3v1.6M10 15.4V17M17 10h-1.6M4.6 10H3M14.9 5.1l-1.1 1.1M6.2 13.7l-1.1 1.1M14.9 14.9l-1.1-1.1M6.2 6.2 5.1 5.1"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-function MenuIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" width={18} height={18} {...props}>
-      <path
-        d="M3 5.5h14M3 10h14M3 14.5h14"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" width={18} height={18} {...props}>
-      <path
-        d="M5 5l10 10M15 5 5 15"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" width={17} height={17} {...props}>

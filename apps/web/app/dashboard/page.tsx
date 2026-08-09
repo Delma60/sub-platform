@@ -145,18 +145,21 @@ export default async function DashboardOverviewPage() {
               <DeliveryRing progress={cycleProgress ?? 0} />
               <div>
                 <p className="text-lg font-semibold leading-tight text-[#17251C]">
-                  {new Date(nextDelivery.scheduledDate).toLocaleDateString("en-NG", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {new Date(nextDelivery.scheduledDate).toLocaleDateString(
+                    "en-NG",
+                    {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    },
+                  )}
                 </p>
                 <p className="text-xs text-[#6B6558]">
                   {daysUntil === 0
                     ? "Arriving today"
                     : daysUntil === 1
-                    ? "1 day away"
-                    : `${daysUntil} days away`}
+                      ? "1 day away"
+                      : `${daysUntil} days away`}
                 </p>
                 <div className="mt-2">
                   <StatusBadge status={nextDelivery.status} />
@@ -193,9 +196,7 @@ export default async function DashboardOverviewPage() {
               <p className="truncate text-base font-semibold text-[#17251C]">
                 {user?.name}
               </p>
-              <p className="truncate text-sm text-[#6B6558]">
-                {user?.email}
-              </p>
+              <p className="truncate text-sm text-[#6B6558]">{user?.email}</p>
             </div>
           </div>
           <Link
@@ -274,7 +275,12 @@ function DeliveryRing({ progress }: { progress: number }) {
   const offset = circumference * (1 - progress);
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="shrink-0"
+    >
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -311,7 +317,9 @@ function IconBadge({
       ? "bg-[#24402F]/10 text-[#24402F]"
       : "bg-[#BC8A31]/10 text-[#BC8A31]";
   return (
-    <span className={`flex h-8 w-8 items-center justify-center rounded-full ${styles}`}>
+    <span
+      className={`flex h-8 w-8 items-center justify-center rounded-full ${styles}`}
+    >
       {children}
     </span>
   );
@@ -351,7 +359,13 @@ function TruckGlyph() {
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      <circle cx="5.5" cy="14" r="1.4" stroke="currentColor" strokeWidth="1.4" />
+      <circle
+        cx="5.5"
+        cy="14"
+        r="1.4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
       <circle cx="13" cy="14" r="1.4" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   );
@@ -380,7 +394,12 @@ function OrderGlyph() {
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      <path d="M7 7.5h6M7 10.5h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M7 7.5h6M7 10.5h6"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

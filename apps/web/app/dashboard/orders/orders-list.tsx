@@ -35,7 +35,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
   const filtered = useMemo(
     () =>
       filter === "all" ? orders : orders.filter((o) => o.status === filter),
-    [orders, filter]
+    [orders, filter],
   );
 
   if (orders.length === 0) {
@@ -44,8 +44,8 @@ export function OrdersList({ orders }: { orders: Order[] }) {
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#E4DCC8] py-14 text-center">
           <p className="text-sm font-medium text-[#17251C]">No orders yet</p>
           <p className="max-w-xs text-sm text-[#6B6558]">
-            Orders are generated automatically from your subscription once
-            it's active.
+            Orders are generated automatically from your subscription once it's
+            active.
           </p>
           <Link
             href="/dashboard/subscription"
@@ -110,11 +110,13 @@ function OrderRow({ order }: { order: Order }) {
             Order #{order.id.split("_")[1]} · {order.planName}
           </p>
           <p className="mt-1 text-xs text-[#6B6558]">
-            Placed {new Date(order.createdAt).toLocaleDateString("en-NG", {
+            Placed{" "}
+            {new Date(order.createdAt).toLocaleDateString("en-NG", {
               month: "short",
               day: "numeric",
             })}{" "}
-            · Delivery {new Date(order.deliveryDate).toLocaleDateString("en-NG", {
+            · Delivery{" "}
+            {new Date(order.deliveryDate).toLocaleDateString("en-NG", {
               month: "short",
               day: "numeric",
             })}
@@ -142,7 +144,10 @@ function Stepper({ currentIndex }: { currentIndex: number }) {
         const isLast = index === STEPS.length - 1;
 
         return (
-          <div key={step.key} className="flex flex-1 items-center last:flex-none">
+          <div
+            key={step.key}
+            className="flex flex-1 items-center last:flex-none"
+          >
             <div className="flex flex-col items-center gap-1.5 text-center">
               <span
                 className={`h-2.5 w-2.5 rounded-full transition ${
