@@ -8,14 +8,43 @@ export type StoredUser = {
   createdAt: string;
 };
 
+const users = new Map<string, StoredUser>();
+let dbAvailable: boolean | null = null;
+
+async function isDbAvailable() {
+  if (dbAvailable !== null) return dbAvailable;
+  if (process.env.NODE_ENV === "production") {
+    dbAvailable = true;
+    return dbAvailable;
+  }
+
+  try {
+    await prisma.$connect();
+    dbAvailable = true;
+  } catch (error) {
+    console.warn("Prisma database unavailable, falling back to in-memory auth store.", error);
+    dbAvailable = false;
+  }
+  return dbAvailable;
+}
+
 export async function findUserByEmail(email: string) {
+  const normalized = email.toLowerCase();
+  if (!(await isDbAvailable())) {
+    return users.get(normalized) ?? null;
+  }
+
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+    where: { email: normalized },
   });
   return user ?? null;
 }
 
 export async function findUserById(id: string) {
+  if (!(await isDbAvailable())) {
+    return Array.from(users.values()).find((user) => user.id === id) ?? null;
+  }
+
   const user = await prisma.user.findUnique({
     where: { id },
   });
@@ -23,6 +52,16 @@ export async function findUserById(id: string) {
 }
 
 export async function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
+  if (!(await isDbAvailable())) {
+    const record: StoredUser = {
+      ...user,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    users.set(user.email.toLowerCase(), record);
+    return record;
+  }
+
   return prisma.user.create({
     data: {
       name: user.name,
@@ -30,4 +69,43 @@ export async function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
       passwordHash: user.passwordHash,
     },
   });
+}
+
+export async function updateUser(
+  id: string,
+  patch: Partial<Pick<StoredUser, "name" | "email" | "passwordHash">>
+) {
+  if (!(await isDbAvailable())) {
+    const user = await findUserById(id);
+    if (!user) return null;
+
+    const updated: StoredUser = {
+      ...user,
+      ...patch,
+      email: patch.email ? patch.email.toLowerCase() : user.email,
+    };
+
+    if (patch.email && patch.email.toLowerCase() !== user.email.toLowerCase()) {
+      users.delete(user.email.toLowerCase());
+      users.set(updated.email.toLowerCase(), updated);
+    } else {
+      users.set(user.email.toLowerCase(), updated);
+    }
+
+    return updated;
+  }
+
+  const user = await findUserById(id);
+  if (!user) return null;
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data: {
+      name: patch.name ?? user.name,
+      email: patch.email ? patch.email.toLowerCase() : user.email,
+      passwordHash: patch.passwordHash ?? user.passwordHash,
+    },
+  });
+
+  return updated;
 }
