@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { StatusBadge } from "../components/status-badge";
 
@@ -17,6 +18,7 @@ type Subscription = {
   planId: string;
   status: "active" | "paused" | "cancelled";
   nextDeliveryDate: string;
+  deliveryDayOfWeek: number | null;
 } | null;
 
 export function SubscriptionManager({
@@ -86,6 +88,32 @@ export function SubscriptionManager({
     }
   }
 
+  const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const labelIndexToJsDay = (i: number) => (i + 1) % 7;
+
+  async function setDeliveryDay(dayOfWeek: number) {
+    if (!subscription) return;
+    setLoading("delivery_day");
+    setError(null);
+    try {
+      const res = await fetch(`/api/subscriptions/${subscription.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set_delivery_day", dayOfWeek }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setError(json.error ?? "Couldn't update delivery day.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {subscription && (
@@ -109,6 +137,39 @@ export function SubscriptionManager({
                   },
                 )}
               </p>
+              <div className="mt-4">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#6B6558]">
+                  Delivery day
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {DAY_LABELS.map((label, i) => {
+                    const jsDay = labelIndexToJsDay(i);
+                    const active = subscription.deliveryDayOfWeek === jsDay;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setDeliveryDay(jsDay)}
+                        disabled={loading !== null}
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition disabled:opacity-60 ${
+                          active
+                            ? "bg-[#24402F] text-white"
+                            : "border border-[#E4DCC8] text-[#6B6558] hover:bg-[#17251C]/[0.04]"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <Link
+                  href="/dashboard/subscription/box"
+                  className="mt-4 inline-block text-sm font-medium text-[#24402F] underline"
+                >
+                  Customize your box →
+                </Link>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">

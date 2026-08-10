@@ -22,11 +22,11 @@ export default async function DeliveriesPage() {
   }));
 
   const upcoming = enriched
-    .filter((delivery) => delivery.status !== "delivered")
+    .filter((d) => d.status === "scheduled" || d.status === "out_for_delivery" || d.status === "issue")
     .sort((a, b) => (a.scheduledDate < b.scheduledDate ? -1 : 1));
 
   const past = enriched
-    .filter((delivery) => delivery.status === "delivered")
+    .filter((d) => d.status === "delivered" || d.status === "skipped")
     .sort((a, b) => (a.scheduledDate < b.scheduledDate ? 1 : -1));
 
   const next = upcoming[0] ?? null;

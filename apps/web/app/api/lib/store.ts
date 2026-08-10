@@ -5,7 +5,12 @@ export type StoredUser = {
   name: string;
   email: string;
   passwordHash: string;
+  role: "customer" | "admin";
   createdAt: string;
+};
+
+export type CreateUserInput = Omit<StoredUser, "id" | "createdAt"> & {
+  role?: StoredUser["role"];
 };
 
 const users = new Map<string, StoredUser>();
@@ -68,10 +73,13 @@ export async function findUserById(id: string) {
   }, () => Array.from(users.values()).find((user) => user.id === id) ?? null);
 }
 
-export async function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
+export async function createUser(user: CreateUserInput) {
+  const role = user.role ?? "customer";
+
   if (!(await isDbAvailable())) {
     const record: StoredUser = {
       ...user,
+      role,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
@@ -90,6 +98,7 @@ export async function createUser(user: Omit<StoredUser, "id" | "createdAt">) {
   }, () => {
     const record: StoredUser = {
       ...user,
+      role,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };

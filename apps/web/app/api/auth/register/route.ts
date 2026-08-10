@@ -33,7 +33,11 @@ export async function POST(request: Request) {
       email,
       passwordHash: hashPassword(password),
     });
-    const token = createSessionToken({ sub: user.id, email: user.email });
+    const token = createSessionToken({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     const response = NextResponse.json(
       apiSuccess({ user: { id: user.id, name: user.name, email: user.email } }),

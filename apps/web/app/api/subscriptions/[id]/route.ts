@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { requireUser } from "../../lib/require-user";
 import { subscriptionActionSchema } from "../../lib/validation";
-import { changeSubscriptionPlan, updateSubscriptionStatus } from "../../lib/data-store";
+import { changeSubscriptionPlan, updateSubscriptionStatus, setDeliveryDay } from "../../lib/data-store";
 
 export async function PATCH(
   request: NextRequest,
@@ -21,13 +21,22 @@ export async function PATCH(
     );
   }
 
-  const { action, planId } = parsed.data;
+  const { action, planId, dayOfWeek } = parsed.data;
 
   if (action === "change_plan") {
     if (!planId) {
       return NextResponse.json(apiError("planId is required", 422), { status: 422 });
     }
     const updated = changeSubscriptionPlan(user.id, id, planId);
+    if (!updated) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
+    return NextResponse.json(apiSuccess({ subscription: updated }));
+  }
+
+  if (action === "set_delivery_day") {
+    if (dayOfWeek === undefined) {
+      return NextResponse.json(apiError("dayOfWeek is required", 422), { status: 422 });
+    }
+    const updated = setDeliveryDay(user.id, id, dayOfWeek);
     if (!updated) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
     return NextResponse.json(apiSuccess({ subscription: updated }));
   }

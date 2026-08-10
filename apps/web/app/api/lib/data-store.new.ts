@@ -1,0 +1,997 @@
+import { prisma } from "./prisma";
+import { withDbFallback } from "./db";
+import type { Prisma } from "@prisma/client";
+
+export type PlanId = "single" | "family" | "bulk";
+
+export type Plan = {
+  id: PlanId;
+  name: string;
+  price: number;
+  frequency: "weekly" | "biweekly" | "monthly";
+  features: string[];
+};
+
+export const PLANS: Plan[] = [
+  {
+    id: "single",
+    name: "Single",
+    price: 15000,
+    frequency: "monthly",
+    features: ["6–8 staple items", "Monthly delivery", "Pause anytime"],
+  },
+  {
+    id: "family",
+    name: "Family",
+    price: 28000,
+    frequency: "biweekly",
+    features: [
+      "14–16 staple items",
+      "Weekly or bi-weekly delivery",
+      "Swap up to 3 items",
+      "Priority delivery slots",
+    ],
+  },
+  {
+    id: "bulk",
+    name: "Bulk",
+    price: 45000,
+    frequency: "weekly",
+    features: [
+      "25+ items, larger quantities",
+      "Weekly delivery",
+      "Full item customization",
+      "Dedicated support line",
+    ],
+  },
+];
+
+export type SubscriptionStatus = "active" | "paused" | "cancelled";
+
+export type StoredSubscription = {
+  id: string;
+  userId: string;
+  planId: PlanId;
+  status: SubscriptionStatus;
+  nextDeliveryDate: string;
+  createdAt: string;
+  updatedAt: string;
+  deliveryDayOfWeek: number | null;
+  itemSwaps: Record<string, string>;
+};
+
+export type StoredAddress = {
+  id: string;
+  userId: string;
+  label: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  isDefault: boolean;
+};
+
+export type OrderStatus = "processing" | "packed" | "out_for_delivery" | "delivered";
+
+export type StoredOrder = {
+  id: string;
+  userId: string;
+  subscriptionId: string;
+  planId: PlanId;
+  status: OrderStatus;
+  total: number;
+  createdAt: string;
+  deliveryDate: string;
+};
+
+export type DeliveryStatus =
+  | "scheduled"
+  | "out_for_delivery"
+  | "delivered"
+  | "issue"
+  | "skipped";
+
+export type StoredDelivery = {
+  id: string;
+  userId: string;
+  orderId: string;
+  addressId: string | null;
+  status: DeliveryStatus;
+  scheduledDate: string;
+  deliveredAt: string | null;
+};
+
+export type PaymentStatus = "success" | "failed" | "pending";
+
+export type StoredPayment = {
+  id: string;
+  userId: string;
+  orderId: string;
+  amount: number;
+  status: PaymentStatus;
+  method: string;
+  createdAt: string;
+};
+
+export type BoxItem = { id: string; name: string; category: string };
+
+export const CATALOG_ITEMS: BoxItem[] = [
+  { id: "tomatoes", name: "Tomatoes", category: "Vegetables" },
+  { id: "pepper-mix", name: "Tatashe & rodo pepper", category: "Vegetables" },
+  { id: "onions", name: "Onions", category: "Vegetables" },
+  { id: "ugu", name: "Ugu & spinach", category: "Vegetables" },
+  { id: "ginger-garlic", name: "Ginger & garlic", category: "Vegetables" },
+  { id: "plantain", name: "Plantain", category: "Vegetables" },
+  { id: "rice", name: "Rice", category: "Grains & staples" },
+  { id: "beans", name: "Beans", category: "Grains & staples" },
+  { id: "garri", name: "Garri", category: "Grains & staples" },
+  { id: "yam", name: "Yam", category: "Grains & staples" },
+  { id: "semovita", name: "Semovita", category: "Grains & staples" },
+  { id: "sweet-potato", name: "Sweet potato", category: "Grains & staples" },
+  { id: "palm-oil", name: "Palm oil", category: "Pantry" },
+  { id: "groundnut-oil", name: "Groundnut oil", category: "Pantry" },
+  { id: "coconut-oil", name: "Coconut oil", category: "Pantry" },
+  { id: "crayfish", name: "Crayfish", category: "Pantry" },
+  { id: "stockfish", name: "Stock fish", category: "Pantry" },
+  { id: "smoked-fish", name: "Smoked fish", category: "Pantry" },
+  { id: "egusi", name: "Egusi", category: "Pantry" },
+  { id: "seasoning-cubes", name: "Seasoning cubes", category: "Pantry" },
+];
+
+export const PLAN_ITEM_IDS: Record<PlanId, string[]> = {
+  single: ["tomatoes", "pepper-mix", "onions", "rice", "beans", "seasoning-cubes"],
+  family: [
+    "tomatoes",
+    "pepper-mix",
+    "onions",
+    "ugu",
+    "ginger-garlic",
+    "rice",
+    "beans",
+    "garri",
+    "yam",
+    "semovita",
+    "palm-oil",
+    "crayfish",
+    "stockfish",
+    "seasoning-cubes",
+  ],
+  bulk: CATALOG_ITEMS.map((item) => item.id),
+};
+
+export const PLAN_SWAP_LIMITS: Record<PlanId, number | null> = {
+  single: 0,
+  family: 3,
+  bulk: null,
+};
+
+export function getSwapCatalog(planId: PlanId) {
+  const baseIds = new Set(PLAN_ITEM_IDS[planId]);
+  return CATALOG_ITEMS.filter((item) => !baseIds.has(item.id));
+}
+
+export function getBoxForSubscription(subscription: StoredSubscription) {
+  const baseIds = PLAN_ITEM_IDS[subscription.planId];
+  const slots = baseIds.map((slotId) => {
+    const swappedToId = subscription.itemSwaps[slotId];
+    const current = CATALOG_ITEMS.find((i) => i.id === (swappedToId ?? slotId))!;
+    const original = swappedToId ? CATALOG_ITEMS.find((i) => i.id === slotId)! : null;
+    return { slotId, item: current, original };
+  });
+
+  const swapsUsed = Object.keys(subscription.itemSwaps).length;
+  const swapLimit = PLAN_SWAP_LIMITS[subscription.planId];
+
+  return {
+    slots,
+    swapsUsed,
+    swapLimit,
+    swapsRemaining: swapLimit === null ? null : Math.max(0, swapLimit - swapsUsed),
+  };
+}
+
+const fallback = {
+  subscriptions: new Map<string, StoredSubscription>(),
+  addresses: new Map<string, StoredAddress>(),
+  orders: new Map<string, StoredOrder>(),
+  deliveries: new Map<string, StoredDelivery>(),
+  payments: new Map<string, StoredPayment>(),
+};
+
+function id(prefix: string) {
+  return `${prefix}_${crypto.randomUUID().split("-")[0]}`;
+}
+
+function addDays(date: Date, days: number) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
+function cycleDaysForPlan(plan: Plan) {
+  return plan.frequency === "weekly" ? 7 : plan.frequency === "biweekly" ? 14 : 30;
+}
+
+function nextOccurrenceOfWeekday(from: Date, dayOfWeek: number) {
+  const d = new Date(from);
+  const diff = (dayOfWeek - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+  return d;
+}
+
+function serializeSubscription(row: {
+  id: string;
+  userId: string;
+  planId: string;
+  status: string;
+  nextDeliveryDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  deliveryDayOfWeek: number | null;
+  itemSwaps: Prisma.JsonValue;
+}): StoredSubscription {
+  return {
+    id: row.id,
+    userId: row.userId,
+    planId: row.planId as PlanId,
+    status: row.status as SubscriptionStatus,
+    nextDeliveryDate: row.nextDeliveryDate.toISOString(),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    deliveryDayOfWeek: row.deliveryDayOfWeek,
+    itemSwaps: (row.itemSwaps as Record<string, string>) ?? {},
+  };
+}
+
+function serializeAddress(row: {
+  id: string;
+  userId: string;
+  label: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string;
+  isDefault: boolean;
+}): StoredAddress {
+  return {
+    id: row.id,
+    userId: row.userId,
+    label: row.label,
+    line1: row.line1,
+    line2: row.line2 ?? undefined,
+    city: row.city,
+    state: row.state,
+    isDefault: row.isDefault,
+  };
+}
+
+function serializeOrder(row: {
+  id: string;
+  userId: string;
+  subscriptionId: string;
+  planId: string;
+  status: string;
+  total: number;
+  createdAt: Date;
+  deliveryDate: Date;
+}): StoredOrder {
+  return {
+    id: row.id,
+    userId: row.userId,
+    subscriptionId: row.subscriptionId,
+    planId: row.planId as PlanId,
+    status: row.status as OrderStatus,
+    total: row.total,
+    createdAt: row.createdAt.toISOString(),
+    deliveryDate: row.deliveryDate.toISOString(),
+  };
+}
+
+function serializeDelivery(row: {
+  id: string;
+  userId: string;
+  orderId: string;
+  addressId: string | null;
+  status: string;
+  scheduledDate: Date;
+  deliveredAt: Date | null;
+}): StoredDelivery {
+  return {
+    id: row.id,
+    userId: row.userId,
+    orderId: row.orderId,
+    addressId: row.addressId,
+    status: row.status as DeliveryStatus,
+    scheduledDate: row.scheduledDate.toISOString(),
+    deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
+  };
+}
+
+function serializePayment(row: {
+  id: string;
+  userId: string;
+  orderId: string;
+  amount: number;
+  status: string;
+  method: string;
+  createdAt: Date;
+}): StoredPayment {
+  return {
+    id: row.id,
+    userId: row.userId,
+    orderId: row.orderId,
+    amount: row.amount,
+    status: row.status as PaymentStatus,
+    method: row.method,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export function listPlans() {
+  return PLANS;
+}
+
+export function getPlan(planId: string) {
+  return PLANS.find((p) => p.id === planId) ?? null;
+}
+
+export async function listAddresses(userId: string): Promise<StoredAddress[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.address.findMany({ where: { userId } });
+      return rows.map(serializeAddress);
+    },
+    () => Array.from(fallback.addresses.values()).filter((a) => a.userId === userId)
+  );
+}
+
+export async function createAddress(
+  userId: string,
+  input: Omit<StoredAddress, "id" | "userId" | "isDefault"> & { isDefault?: boolean }
+): Promise<StoredAddress> {
+  return withDbFallback(
+    async () => {
+      const existingCount = await prisma.address.count({ where: { userId } });
+      const isDefault = input.isDefault ?? existingCount === 0;
+
+      const row = await prisma.$transaction(async (tx) => {
+        if (isDefault) {
+          await tx.address.updateMany({ where: { userId }, data: { isDefault: false } });
+        }
+        return tx.address.create({
+          data: {
+            id: id("addr"),
+            userId,
+            label: input.label,
+            line1: input.line1,
+            line2: input.line2 ?? null,
+            city: input.city,
+            state: input.state,
+            isDefault,
+          },
+        });
+      });
+
+      return serializeAddress(row);
+    },
+    () => {
+      const existing = Array.from(fallback.addresses.values()).filter((a) => a.userId === userId);
+      const address: StoredAddress = {
+        id: id("addr"),
+        userId,
+        label: input.label,
+        line1: input.line1,
+        line2: input.line2,
+        city: input.city,
+        state: input.state,
+        isDefault: input.isDefault ?? existing.length === 0,
+      };
+      if (address.isDefault) {
+        existing.forEach((a) => fallback.addresses.set(a.id, { ...a, isDefault: false }));
+      }
+      fallback.addresses.set(address.id, address);
+      return address;
+    }
+  );
+}
+
+export async function updateAddress(
+  userId: string,
+  addressId: string,
+  patch: Partial<Omit<StoredAddress, "id" | "userId">>
+): Promise<StoredAddress | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.address.findFirst({ where: { id: addressId, userId } });
+      if (!existing) return null;
+
+      const row = await prisma.$transaction(async (tx) => {
+        if (patch.isDefault) {
+          await tx.address.updateMany({ where: { userId }, data: { isDefault: false } });
+        }
+        return tx.address.update({
+          where: { id: addressId },
+          data: {
+            label: patch.label,
+            line1: patch.line1,
+            line2: patch.line2 ?? undefined,
+            city: patch.city,
+            state: patch.state,
+            isDefault: patch.isDefault,
+          },
+        });
+      });
+
+      return serializeAddress(row);
+    },
+    () => {
+      const addr = fallback.addresses.get(addressId);
+      if (!addr || addr.userId !== userId) return null;
+      if (patch.isDefault) {
+        Array.from(fallback.addresses.values())
+          .filter((a) => a.userId === userId)
+          .forEach((a) => fallback.addresses.set(a.id, { ...a, isDefault: false }));
+      }
+      const updated = { ...addr, ...patch };
+      fallback.addresses.set(addressId, updated);
+      return updated;
+    }
+  );
+}
+
+export async function deleteAddress(userId: string, addressId: string): Promise<boolean> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.address.findFirst({ where: { id: addressId, userId } });
+      if (!existing) return false;
+
+      await prisma.$transaction(async (tx) => {
+        await tx.address.delete({ where: { id: addressId } });
+        if (existing.isDefault) {
+          const remaining = await tx.address.findFirst({ where: { userId } });
+          if (remaining) {
+            await tx.address.update({ where: { id: remaining.id }, data: { isDefault: true } });
+          }
+        }
+      });
+
+      return true;
+    },
+    () => {
+      const addr = fallback.addresses.get(addressId);
+      if (!addr || addr.userId !== userId) return false;
+      fallback.addresses.delete(addressId);
+      if (addr.isDefault) {
+        const remaining = Array.from(fallback.addresses.values()).filter((a) => a.userId === userId);
+        if (remaining.length > 0) {
+          fallback.addresses.set(remaining[0].id, { ...remaining[0], isDefault: true });
+        }
+      }
+      return true;
+    }
+  );
+}
+
+export async function getActiveSubscription(userId: string): Promise<StoredSubscription | null> {
+  return withDbFallback(
+    async () => {
+      const row = await prisma.subscription.findFirst({
+        where: { userId, status: { not: "cancelled" } },
+      });
+      return row ? serializeSubscription(row) : null;
+    },
+    () =>
+      Array.from(fallback.subscriptions.values()).find(
+        (s) => s.userId === userId && s.status !== "cancelled"
+      ) ?? null
+  );
+}
+
+export async function getSubscriptionById(
+  userId: string,
+  subscriptionId: string
+): Promise<StoredSubscription | null> {
+  return withDbFallback(
+    async () => {
+      const row = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
+      return row ? serializeSubscription(row) : null;
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      return sub && sub.userId === userId ? sub : null;
+    }
+  );
+}
+
+export async function createSubscription(userId: string, planId: PlanId): Promise<StoredSubscription> {
+  const plan = getPlan(planId);
+  if (!plan) throw new Error("Invalid plan");
+
+  return withDbFallback(
+    async () => {
+      const active = await prisma.subscription.findFirst({
+        where: { userId, status: { not: "cancelled" } },
+      });
+      if (active) throw new Error("You already have an active subscription");
+
+      const now = new Date();
+      const nextDeliveryDate = new Date(addDays(now, cycleDaysForPlan(plan)));
+      const defaultAddress = await prisma.address.findFirst({ where: { userId, isDefault: true } });
+
+      const subRow = await prisma.$transaction(async (tx) => {
+        const sub = await tx.subscription.create({
+          data: {
+            id: id("sub"),
+            userId,
+            planId,
+            status: "active",
+            nextDeliveryDate,
+            deliveryDayOfWeek: null,
+            itemSwaps: {},
+          },
+        });
+
+        const order = await tx.order.create({
+          data: {
+            id: id("ord"),
+            userId,
+            subscriptionId: sub.id,
+            planId,
+            status: "processing",
+            total: plan.price,
+            deliveryDate: nextDeliveryDate,
+          },
+        });
+
+        await tx.delivery.create({
+          data: {
+            id: id("del"),
+            userId,
+            orderId: order.id,
+            addressId: defaultAddress?.id ?? null,
+            status: "scheduled",
+            scheduledDate: nextDeliveryDate,
+          },
+        });
+
+        await tx.payment.create({
+          data: {
+            id: id("pay"),
+            userId,
+            orderId: order.id,
+            amount: plan.price,
+            status: "success",
+            method: "Flutterwave",
+          },
+        });
+
+        return sub;
+      });
+
+      return serializeSubscription(subRow);
+    },
+    () => {
+      const now = new Date();
+      const existingActive = Array.from(fallback.subscriptions.values()).find(
+        (s) => s.userId === userId && s.status !== "cancelled"
+      );
+      if (existingActive) throw new Error("You already have an active subscription");
+
+      const nextDeliveryDate = addDays(now, cycleDaysForPlan(plan));
+
+      const sub: StoredSubscription = {
+        id: id("sub"),
+        userId,
+        planId,
+        status: "active",
+        nextDeliveryDate,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+        deliveryDayOfWeek: null,
+        itemSwaps: {},
+      };
+      fallback.subscriptions.set(sub.id, sub);
+
+      const order: StoredOrder = {
+        id: id("ord"),
+        userId,
+        subscriptionId: sub.id,
+        planId,
+        status: "processing",
+        total: plan.price,
+        createdAt: now.toISOString(),
+        deliveryDate: nextDeliveryDate,
+      };
+      fallback.orders.set(order.id, order);
+
+      const defaultAddress = Array.from(fallback.addresses.values()).find(
+        (a) => a.userId === userId && a.isDefault
+      );
+
+      const delivery: StoredDelivery = {
+        id: id("del"),
+        userId,
+        orderId: order.id,
+        addressId: defaultAddress?.id ?? null,
+        status: "scheduled",
+        scheduledDate: nextDeliveryDate,
+        deliveredAt: null,
+      };
+      fallback.deliveries.set(delivery.id, delivery);
+
+      const payment: StoredPayment = {
+        id: id("pay"),
+        userId,
+        orderId: order.id,
+        amount: plan.price,
+        status: "success",
+        method: "Flutterwave",
+        createdAt: now.toISOString(),
+      };
+      fallback.payments.set(payment.id, payment);
+
+      return sub;
+    }
+  );
+}
+
+export async function updateSubscriptionStatus(
+  userId: string,
+  subscriptionId: string,
+  status: SubscriptionStatus
+): Promise<StoredSubscription | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
+      if (!existing) return null;
+      const row = await prisma.subscription.update({ where: { id: subscriptionId }, data: { status } });
+      return serializeSubscription(row);
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      if (!sub || sub.userId !== userId) return null;
+      sub.status = status;
+      sub.updatedAt = new Date().toISOString();
+      fallback.subscriptions.set(sub.id, sub);
+      return sub;
+    }
+  );
+}
+
+export async function changeSubscriptionPlan(
+  userId: string,
+  subscriptionId: string,
+  planId: PlanId
+): Promise<StoredSubscription | null> {
+  const plan = getPlan(planId);
+  if (!plan) return null;
+
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
+      if (!existing) return null;
+      const row = await prisma.subscription.update({ where: { id: subscriptionId }, data: { planId } });
+      return serializeSubscription(row);
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      if (!sub || sub.userId !== userId) return null;
+      sub.planId = planId;
+      sub.updatedAt = new Date().toISOString();
+      fallback.subscriptions.set(sub.id, sub);
+      return sub;
+    }
+  );
+}
+
+export async function setDeliveryDay(
+  userId: string,
+  subscriptionId: string,
+  dayOfWeek: number
+): Promise<StoredSubscription | null> {
+  if (dayOfWeek < 0 || dayOfWeek > 6) return null;
+
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
+      if (!existing) return null;
+
+      const row = await prisma.$transaction(async (tx) => {
+        const updatedSub = await tx.subscription.update({
+          where: { id: subscriptionId },
+          data: { deliveryDayOfWeek: dayOfWeek },
+        });
+
+        const upcoming = await tx.delivery.findFirst({
+          where: {
+            userId,
+            status: { notIn: ["delivered", "skipped"] },
+            order: { subscriptionId },
+          },
+        });
+
+        if (upcoming) {
+          const newDate = nextOccurrenceOfWeekday(new Date(), dayOfWeek);
+          await tx.delivery.update({ where: { id: upcoming.id }, data: { scheduledDate: newDate } });
+          await tx.order.update({ where: { id: upcoming.orderId }, data: { deliveryDate: newDate } });
+          return tx.subscription.update({
+            where: { id: subscriptionId },
+            data: { nextDeliveryDate: newDate },
+          });
+        }
+
+        return updatedSub;
+      });
+
+      return serializeSubscription(row);
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      if (!sub || sub.userId !== userId) return null;
+
+      sub.deliveryDayOfWeek = dayOfWeek;
+      sub.updatedAt = new Date().toISOString();
+
+      const relatedOrderIds = new Set(
+        Array.from(fallback.orders.values())
+          .filter((o) => o.subscriptionId === sub.id)
+          .map((o) => o.id)
+      );
+      const upcoming = Array.from(fallback.deliveries.values()).find(
+        (d) => relatedOrderIds.has(d.orderId) && d.status !== "delivered" && d.status !== "skipped"
+      );
+
+      if (upcoming) {
+        const newDate = nextOccurrenceOfWeekday(new Date(), dayOfWeek).toISOString();
+        upcoming.scheduledDate = newDate;
+        fallback.deliveries.set(upcoming.id, upcoming);
+        sub.nextDeliveryDate = newDate;
+
+        const order = fallback.orders.get(upcoming.orderId);
+        if (order) {
+          order.deliveryDate = newDate;
+          fallback.orders.set(order.id, order);
+        }
+      }
+
+      fallback.subscriptions.set(sub.id, sub);
+      return sub;
+    }
+  );
+}
+
+export async function swapBoxItem(
+  userId: string,
+  subscriptionId: string,
+  fromItemId: string,
+  toItemId: string
+): Promise<{ subscription: StoredSubscription } | { error: string }> {
+  const validate = (sub: StoredSubscription) => {
+    const baseIds = PLAN_ITEM_IDS[sub.planId];
+    if (!baseIds.includes(fromItemId)) return "That item isn't part of your box";
+    if (!CATALOG_ITEMS.some((i) => i.id === toItemId)) return "Unknown replacement item";
+    if (baseIds.includes(toItemId) && toItemId !== fromItemId) return "That item is already in your box";
+
+    const swapLimit = PLAN_SWAP_LIMITS[sub.planId];
+    const alreadySwapping = fromItemId in sub.itemSwaps;
+    if (swapLimit === 0) return "Item swaps aren't available on your plan";
+    if (!alreadySwapping && swapLimit !== null) {
+      const swapsUsed = Object.keys(sub.itemSwaps).length;
+      if (swapsUsed >= swapLimit) return `Your plan allows up to ${swapLimit} swaps per box`;
+    }
+    return null;
+  };
+
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
+      if (!existing) return { error: "Subscription not found" };
+      const sub = serializeSubscription(existing);
+
+      const error = validate(sub);
+      if (error) return { error };
+
+      const itemSwaps = { ...sub.itemSwaps, [fromItemId]: toItemId };
+      const row = await prisma.subscription.update({
+        where: { id: subscriptionId },
+        data: { itemSwaps },
+      });
+      return { subscription: serializeSubscription(row) };
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      if (!sub || sub.userId !== userId) return { error: "Subscription not found" };
+
+      const error = validate(sub);
+      if (error) return { error };
+
+      sub.itemSwaps = { ...sub.itemSwaps, [fromItemId]: toItemId };
+      sub.updatedAt = new Date().toISOString();
+      fallback.subscriptions.set(sub.id, sub);
+      return { subscription: sub };
+    }
+  );
+}
+
+export async function resetBoxItem(
+  userId: string,
+  subscriptionId: string,
+  itemId: string
+): Promise<StoredSubscription | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
+      if (!existing) return null;
+      const sub = serializeSubscription(existing);
+      const { [itemId]: _removed, ...rest } = sub.itemSwaps;
+      const row = await prisma.subscription.update({ where: { id: subscriptionId }, data: { itemSwaps: rest } });
+      return serializeSubscription(row);
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      if (!sub || sub.userId !== userId) return null;
+      const { [itemId]: _removed, ...rest } = sub.itemSwaps;
+      sub.itemSwaps = rest;
+      sub.updatedAt = new Date().toISOString();
+      fallback.subscriptions.set(sub.id, sub);
+      return sub;
+    }
+  );
+}
+
+export async function listOrders(userId: string): Promise<StoredOrder[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.order.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      });
+      return rows.map(serializeOrder);
+    },
+    () =>
+      Array.from(fallback.orders.values())
+        .filter((o) => o.userId === userId)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+  );
+}
+
+export async function listDeliveries(userId: string): Promise<StoredDelivery[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.delivery.findMany({
+        where: { userId },
+        orderBy: { scheduledDate: "desc" },
+      });
+      return rows.map(serializeDelivery);
+    },
+    () =>
+      Array.from(fallback.deliveries.values())
+        .filter((d) => d.userId === userId)
+        .sort((a, b) => (a.scheduledDate < b.scheduledDate ? 1 : -1))
+  );
+}
+
+export async function skipDelivery(
+  userId: string,
+  deliveryId: string
+): Promise<{ delivery: StoredDelivery } | { error: string }> {
+  return withDbFallback(
+    async () => {
+      const delivery = await prisma.delivery.findFirst({ where: { id: deliveryId, userId } });
+      if (!delivery) return { error: "Delivery not found" };
+      if (delivery.status === "delivered" || delivery.status === "skipped") {
+        return { error: "This delivery can't be skipped" };
+      }
+
+      const order = await prisma.order.findUnique({ where: { id: delivery.orderId } });
+      const sub = order ? await prisma.subscription.findUnique({ where: { id: order.subscriptionId } }) : null;
+      if (!order || !sub) return { error: "Could not find the related subscription" };
+
+      const plan = getPlan(sub.planId)!;
+      const cycleDays = cycleDaysForPlan(plan);
+      const nextDate =
+        sub.deliveryDayOfWeek != null
+          ? nextOccurrenceOfWeekday(delivery.scheduledDate, sub.deliveryDayOfWeek)
+          : new Date(addDays(delivery.scheduledDate, cycleDays));
+
+      const newDeliveryRow = await prisma.$transaction(async (tx) => {
+        await tx.delivery.update({ where: { id: deliveryId }, data: { status: "skipped" } });
+
+        const newOrder = await tx.order.create({
+          data: {
+            id: id("ord"),
+            userId,
+            subscriptionId: sub.id,
+            planId: sub.planId,
+            status: "processing",
+            total: plan.price,
+            deliveryDate: nextDate,
+          },
+        });
+
+        const newDelivery = await tx.delivery.create({
+          data: {
+            id: id("del"),
+            userId,
+            orderId: newOrder.id,
+            addressId: delivery.addressId,
+            status: "scheduled",
+            scheduledDate: nextDate,
+          },
+        });
+
+        await tx.subscription.update({ where: { id: sub.id }, data: { nextDeliveryDate: nextDate } });
+
+        return newDelivery;
+      });
+
+      return { delivery: serializeDelivery(newDeliveryRow) };
+    },
+    () => {
+      const delivery = fallback.deliveries.get(deliveryId);
+      if (!delivery || delivery.userId !== userId) return { error: "Delivery not found" };
+      if (delivery.status === "delivered" || delivery.status === "skipped") {
+        return { error: "This delivery can't be skipped" };
+      }
+
+      const order = fallback.orders.get(delivery.orderId);
+      const sub = order ? fallback.subscriptions.get(order.subscriptionId) : null;
+      if (!order || !sub) return { error: "Could not find the related subscription" };
+
+      delivery.status = "skipped";
+      fallback.deliveries.set(delivery.id, delivery);
+
+      const plan = getPlan(sub.planId)!;
+      const cycleDays = cycleDaysForPlan(plan);
+      const nextDate =
+        sub.deliveryDayOfWeek != null
+          ? nextOccurrenceOfWeekday(new Date(delivery.scheduledDate), sub.deliveryDayOfWeek).toISOString()
+          : addDays(new Date(delivery.scheduledDate), cycleDays);
+
+      const newOrder: StoredOrder = {
+        id: id("ord"),
+        userId,
+        subscriptionId: sub.id,
+        planId: sub.planId,
+        status: "processing",
+        total: plan.price,
+        createdAt: new Date().toISOString(),
+        deliveryDate: nextDate,
+      };
+      fallback.orders.set(newOrder.id, newOrder);
+
+      const newDelivery: StoredDelivery = {
+        id: id("del"),
+        userId,
+        orderId: newOrder.id,
+        addressId: delivery.addressId,
+        status: "scheduled",
+        scheduledDate: nextDate,
+        deliveredAt: null,
+      };
+      fallback.deliveries.set(newDelivery.id, newDelivery);
+
+      sub.nextDeliveryDate = nextDate;
+      sub.updatedAt = new Date().toISOString();
+      fallback.subscriptions.set(sub.id, sub);
+
+      return { delivery: newDelivery };
+    }
+  );
+}
+
+export async function listPayments(userId: string): Promise<StoredPayment[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.payment.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      });
+      return rows.map(serializePayment);
+    },
+    () =>
+      Array.from(fallback.payments.values())
+        .filter((p) => p.userId === userId)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+  );
+}

@@ -52,6 +52,8 @@ export type StoredSubscription = {
   nextDeliveryDate: string;
   createdAt: string;
   updatedAt: string;
+  deliveryDayOfWeek: number | null; // 0 = Sunday … 6 = Saturday
+  itemSwaps: Record<string, string>; // originalItemId -> replacementItemId
 };
 
 export type StoredAddress = {
@@ -78,7 +80,12 @@ export type StoredOrder = {
   deliveryDate: string;
 };
 
-export type DeliveryStatus = "scheduled" | "out_for_delivery" | "delivered" | "issue";
+export type DeliveryStatus =
+  | "scheduled"
+  | "out_for_delivery"
+  | "delivered"
+  | "issue"
+  | "skipped";
 
 export type StoredDelivery = {
   id: string;
@@ -127,6 +134,240 @@ export function getPlan(planId: string) {
   return PLANS.find((p) => p.id === planId) ?? null;
 }
 
+// ---- Box items & customization ----
+export type BoxItem = {
+  id: string;
+  name: string;
+  category: string;
+};
+
+export const CATALOG_ITEMS: BoxItem[] = [
+  { id: "tomatoes", name: "Tomatoes", category: "Vegetables" },
+  { id: "pepper-mix", name: "Tatashe & rodo pepper", category: "Vegetables" },
+  { id: "onions", name: "Onions", category: "Vegetables" },
+  { id: "ugu", name: "Ugu & spinach", category: "Vegetables" },
+  { id: "ginger-garlic", name: "Ginger & garlic", category: "Vegetables" },
+  { id: "plantain", name: "Plantain", category: "Vegetables" },
+  { id: "rice", name: "Rice", category: "Grains & staples" },
+  { id: "beans", name: "Beans", category: "Grains & staples" },
+  { id: "garri", name: "Garri", category: "Grains & staples" },
+  { id: "yam", name: "Yam", category: "Grains & staples" },
+  { id: "semovita", name: "Semovita", category: "Grains & staples" },
+  { id: "sweet-potato", name: "Sweet potato", category: "Grains & staples" },
+  { id: "palm-oil", name: "Palm oil", category: "Pantry" },
+  { id: "groundnut-oil", name: "Groundnut oil", category: "Pantry" },
+  { id: "coconut-oil", name: "Coconut oil", category: "Pantry" },
+  { id: "crayfish", name: "Crayfish", category: "Pantry" },
+  { id: "stockfish", name: "Stock fish", category: "Pantry" },
+  { id: "smoked-fish", name: "Smoked fish", category: "Pantry" },
+  { id: "egusi", name: "Egusi", category: "Pantry" },
+  { id: "seasoning-cubes", name: "Seasoning cubes", category: "Pantry" },
+];
+
+// Default box contents per plan (matches marketing copy: 6-8 / 14-16 / 25+ items)
+export const PLAN_ITEM_IDS: Record<PlanId, string[]> = {
+  single: ["tomatoes", "pepper-mix", "onions", "rice", "beans", "seasoning-cubes"],
+  family: [
+    "tomatoes",
+    "pepper-mix",
+    "onions",
+    "ugu",
+    "ginger-garlic",
+    "rice",
+    "beans",
+    "garri",
+    "yam",
+    "semovita",
+    "palm-oil",
+    "crayfish",
+    "stockfish",
+    "seasoning-cubes",
+  ],
+  bulk: CATALOG_ITEMS.map((item) => item.id),
+};
+
+// null = unlimited swaps (Bulk's "full customization")
+export const PLAN_SWAP_LIMITS: Record<PlanId, number | null> = {
+  single: 0,
+  family: 3,
+  bulk: null,
+};
+
+export function getSwapCatalog(planId: PlanId) {
+  const baseIds = new Set(PLAN_ITEM_IDS[planId]);
+  return CATALOG_ITEMS.filter((item) => !baseIds.has(item.id));
+}
+
+export function getBoxForSubscription(subscription: StoredSubscription) {
+  const baseIds = PLAN_ITEM_IDS[subscription.planId];
+  const slots = baseIds.map((slotId) => {
+    const swappedToId = subscription.itemSwaps[slotId];
+    const current = CATALOG_ITEMS.find((i) => i.id === (swappedToId ?? slotId))!;
+    const original = swappedToId
+      ? CATALOG_ITEMS.find((i) => i.id === slotId)!
+      : null;
+    return { slotId, item: current, original };
+  });
+
+  const swapsUsed = Object.keys(subscription.itemSwaps).length;
+  const swapLimit = PLAN_SWAP_LIMITS[subscription.planId];
+
+  return {
+    slots,
+    swapsUsed,
+    swapLimit,
+    swapsRemaining: swapLimit === null ? null : Math.max(0, swapLimit - swapsUsed),
+  };
+}
+
+export function swapBoxItem(
+  userId: string,
+  subscriptionId: string,
+  fromItemId: string,
+  toItemId: string
+) {
+  const sub = subscriptions.get(subscriptionId);
+  if (!sub || sub.userId !== userId) return { error: "Subscription not found" as const };
+
+  const baseIds = PLAN_ITEM_IDS[sub.planId];
+  if (!baseIds.includes(fromItemId)) {
+    return { error: "That item isn't part of your box" as const };
+  }
+  if (!CATALOG_ITEMS.some((i) => i.id === toItemId)) {
+    return { error: "Unknown replacement item" as const };
+  }
+  if (baseIds.includes(toItemId) && toItemId !== fromItemId) {
+    return { error: "That item is already in your box" as const };
+  }
+
+  const swapLimit = PLAN_SWAP_LIMITS[sub.planId];
+  const alreadySwapping = fromItemId in sub.itemSwaps;
+  if (swapLimit === 0) {
+    return { error: "Item swaps aren't available on your plan" as const };
+  }
+  if (!alreadySwapping && swapLimit !== null) {
+    const swapsUsed = Object.keys(sub.itemSwaps).length;
+    if (swapsUsed >= swapLimit) {
+      return { error: `Your plan allows up to ${swapLimit} swaps per box` as const };
+    }
+  }
+
+  sub.itemSwaps = { ...sub.itemSwaps, [fromItemId]: toItemId };
+  sub.updatedAt = new Date().toISOString();
+  subscriptions.set(sub.id, sub);
+  return { subscription: sub };
+}
+
+export function resetBoxItem(userId: string, subscriptionId: string, itemId: string) {
+  const sub = subscriptions.get(subscriptionId);
+  if (!sub || sub.userId !== userId) return null;
+  const { [itemId]: _removed, ...rest } = sub.itemSwaps;
+  sub.itemSwaps = rest;
+  sub.updatedAt = new Date().toISOString();
+  subscriptions.set(sub.id, sub);
+  return sub;
+}
+
+export function getSubscriptionById(userId: string, subscriptionId: string) {
+  const sub = subscriptions.get(subscriptionId);
+  return sub && sub.userId === userId ? sub : null;
+}
+
+function nextOccurrenceOfWeekday(from: Date, dayOfWeek: number) {
+  const d = new Date(from);
+  const diff = (dayOfWeek - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+  return d;
+}
+
+export function setDeliveryDay(userId: string, subscriptionId: string, dayOfWeek: number) {
+  const sub = subscriptions.get(subscriptionId);
+  if (!sub || sub.userId !== userId) return null;
+  if (dayOfWeek < 0 || dayOfWeek > 6) return null;
+
+  sub.deliveryDayOfWeek = dayOfWeek;
+  sub.updatedAt = new Date().toISOString();
+
+  const relatedOrderIds = new Set(
+    Array.from(orders.values())
+      .filter((o) => o.subscriptionId === sub.id)
+      .map((o) => o.id)
+  );
+  const upcoming = Array.from(deliveries.values()).find(
+    (d) => relatedOrderIds.has(d.orderId) && d.status !== "delivered" && d.status !== "skipped"
+  );
+
+  if (upcoming) {
+    const newDate = nextOccurrenceOfWeekday(new Date(), dayOfWeek).toISOString();
+    upcoming.scheduledDate = newDate;
+    deliveries.set(upcoming.id, upcoming);
+    sub.nextDeliveryDate = newDate;
+
+    const order = orders.get(upcoming.orderId);
+    if (order) {
+      order.deliveryDate = newDate;
+      orders.set(order.id, order);
+    }
+  }
+
+  subscriptions.set(sub.id, sub);
+  return sub;
+}
+
+export function skipDelivery(userId: string, deliveryId: string) {
+  const delivery = deliveries.get(deliveryId);
+  if (!delivery || delivery.userId !== userId) {
+    return { error: "Delivery not found" as const };
+  }
+  if (delivery.status === "delivered" || delivery.status === "skipped") {
+    return { error: "This delivery can't be skipped" as const };
+  }
+
+  const order = orders.get(delivery.orderId);
+  const sub = order ? subscriptions.get(order.subscriptionId) : null;
+  if (!order || !sub) return { error: "Could not find the related subscription" as const };
+
+  delivery.status = "skipped";
+  deliveries.set(delivery.id, delivery);
+
+  const plan = getPlan(sub.planId)!;
+  const cycleDays = plan.frequency === "weekly" ? 7 : plan.frequency === "biweekly" ? 14 : 30;
+
+  const nextDate =
+    sub.deliveryDayOfWeek != null
+      ? nextOccurrenceOfWeekday(new Date(delivery.scheduledDate), sub.deliveryDayOfWeek).toISOString()
+      : addDays(new Date(delivery.scheduledDate), cycleDays);
+
+  const newOrder: StoredOrder = {
+    id: id("ord"),
+    userId,
+    subscriptionId: sub.id,
+    planId: sub.planId,
+    status: "processing",
+    total: plan.price,
+    createdAt: new Date().toISOString(),
+    deliveryDate: nextDate,
+  };
+  orders.set(newOrder.id, newOrder);
+
+  const newDelivery: StoredDelivery = {
+    id: id("del"),
+    userId,
+    orderId: newOrder.id,
+    addressId: delivery.addressId,
+    status: "scheduled",
+    scheduledDate: nextDate,
+    deliveredAt: null,
+  };
+  deliveries.set(newDelivery.id, newDelivery);
+
+  sub.nextDeliveryDate = nextDate;
+  sub.updatedAt = new Date().toISOString();
+  subscriptions.set(sub.id, sub);
+
+  return { delivery: newDelivery };
+}
+
 // ---- Subscriptions ----
 export function getActiveSubscription(userId: string) {
   return (
@@ -156,6 +397,8 @@ export function createSubscription(userId: string, planId: PlanId) {
     nextDeliveryDate: addDays(now, cycleDays),
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
+    deliveryDayOfWeek: null,
+    itemSwaps: {},
   };
   subscriptions.set(sub.id, sub);
 

@@ -16,8 +16,19 @@ export const subscribeSchema = z.object({
 });
 
 export const subscriptionActionSchema = z.object({
-  action: z.enum(["pause", "resume", "cancel", "change_plan"]),
+  action: z.enum(["pause", "resume", "cancel", "change_plan", "set_delivery_day"]),
   planId: z.enum(["single", "family", "bulk"]).optional(),
+  dayOfWeek: z.number().int().min(0).max(6).optional(),
+});
+
+export const swapBoxItemSchema = z.object({
+  fromItemId: z.string().min(1),
+  toItemId: z.string().min(1),
+});
+
+export const resetBoxItemSchema = z.object({
+  action: z.literal("reset"),
+  itemId: z.string().min(1),
 });
 
 export const addressSchema = z.object({

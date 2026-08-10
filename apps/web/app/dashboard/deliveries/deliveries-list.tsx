@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DeliveryStatusPill } from "./delivery-status-pill";
 import type { DeliveryStatus } from "../../api/lib/data-store";
@@ -29,14 +30,37 @@ export function DeliveriesList({
   upcoming: Delivery[];
   past: Delivery[];
 }) {
+  const router = useRouter();
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>(
     upcoming.length > 0 ? "upcoming" : "past",
   );
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const rows = tab === "upcoming" ? upcoming : past;
 
-  if (upcoming.length === 0 && past.length === 0) {
-    return null;
+  if (upcoming.length === 0 && past.length === 0) return null;
+
+  async function handleSkip(deliveryId: string) {
+    setBusyId(deliveryId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/deliveries/${deliveryId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "skip" }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setError(json.error ?? "Couldn't skip this delivery.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Couldn't reach the server. Try again.");
+    } finally {
+      setBusyId(null);
+    }
   }
 
   return (
@@ -62,6 +86,12 @@ export function DeliveriesList({
         })}
       </div>
 
+      {error && (
+        <p className="mt-4 rounded-2xl border border-[#F3D4CF] bg-[#FBEAE7] px-4 py-3 text-sm text-[#B3261E]">
+        {error}
+        </p>
+      )}
+
       {rows.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-1 rounded-2xl border border-dashed border-[#E4DCC8] py-10 text-center">
           <p className="text-sm font-medium text-[#17251C]">
@@ -79,14 +109,11 @@ export function DeliveriesList({
             >
               <div>
                 <p className="text-sm font-medium text-[#17251C]">
-                  {new Date(delivery.scheduledDate).toLocaleDateString(
-                    "en-NG",
-                    {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    },
-                  )}
+                  {new Date(delivery.scheduledDate).toLocaleDateString("en-NG", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </p>
                 <p className="mt-0.5 text-xs text-[#6B6558]">
                   {delivery.address
@@ -95,7 +122,19 @@ export function DeliveriesList({
                 </p>
               </div>
 
-              <DeliveryStatusPill status={delivery.status} />
+              <div className="flex items-center gap-2">
+                <DeliveryStatusPill status={delivery.status} />
+                {tab === "upcoming" && delivery.status === "scheduled" && (
+                  <button
+                    type="button"
+                    onClick={() => handleSkip(delivery.id)}
+                    disabled={busyId === delivery.id}
+                    className="rounded-full border border-[#E4DCC8] px-3 py-1.5 text-xs font-medium text-[#6B6558] transition hover:bg-[#17251C]/[0.04] disabled:opacity-60"
+                  >
+                    {busyId === delivery.id ? "Skipping…" : "Skip"}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
