@@ -12,7 +12,6 @@ import {
   listAllOrders,
   listAllPayments,
   listAllDeliveries,
-  getPlan,
   listPlans,
   monthlyEquivalentRevenue,
 } from "../api/lib/data-store";

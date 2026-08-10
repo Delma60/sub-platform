@@ -1,5 +1,5 @@
 import { getCurrentUser } from "../../lib/get-current-user";
-import { getPlan, listOrders, listPayments } from "../../api/lib/data-store";
+import { listOrders, listPayments, listPlans } from "../../api/lib/data-store";
 import { PaymentsList } from "./payments-list";
 
 export default async function PaymentsPage() {
