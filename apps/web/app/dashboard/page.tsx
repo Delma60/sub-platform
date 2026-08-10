@@ -23,10 +23,10 @@ export default async function DashboardOverviewPage() {
   const firstName = user?.name?.split(" ")[0] ?? "there";
   const greeting = greetingForHour(new Date().getHours());
 
-  const subscription = user ? getActiveSubscription(user.id) : null;
+  const subscription = user ? await getActiveSubscription(user.id) : null;
   const plan = subscription ? getPlan(subscription.planId) : null;
-  const orders = user ? listOrders(user.id) : [];
-  const deliveries = user ? listDeliveries(user.id) : [];
+  const orders = user ? await listOrders(user.id) : [];
+  const deliveries = user ? await listDeliveries(user.id) : [];
   const nextDelivery = deliveries.find((d) => d.status !== "delivered");
   const recentOrders = orders.slice(0, 4);
 

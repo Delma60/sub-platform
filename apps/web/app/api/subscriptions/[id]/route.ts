@@ -27,7 +27,7 @@ export async function PATCH(
     if (!planId) {
       return NextResponse.json(apiError("planId is required", 422), { status: 422 });
     }
-    const updated = changeSubscriptionPlan(user.id, id, planId);
+    const updated = await changeSubscriptionPlan(user.id, id, planId);
     if (!updated) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
     return NextResponse.json(apiSuccess({ subscription: updated }));
   }
@@ -36,13 +36,13 @@ export async function PATCH(
     if (dayOfWeek === undefined) {
       return NextResponse.json(apiError("dayOfWeek is required", 422), { status: 422 });
     }
-    const updated = setDeliveryDay(user.id, id, dayOfWeek);
+    const updated = await setDeliveryDay(user.id, id, dayOfWeek);
     if (!updated) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
     return NextResponse.json(apiSuccess({ subscription: updated }));
   }
 
   const status = action === "pause" ? "paused" : action === "resume" ? "active" : "cancelled";
-  const updated = updateSubscriptionStatus(user.id, id, status);
+  const updated = await updateSubscriptionStatus(user.id, id, status);
   if (!updated) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
   return NextResponse.json(apiSuccess({ subscription: updated }));
 }

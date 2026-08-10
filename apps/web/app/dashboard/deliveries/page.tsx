@@ -9,8 +9,8 @@ const WEEK_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
 
 export default async function DeliveriesPage() {
   const user = await getCurrentUser();
-  const deliveries = user ? listDeliveries(user.id) : [];
-  const addresses = user ? listAddresses(user.id) : [];
+  const deliveries = user ? await listDeliveries(user.id) : [];
+  const addresses = user ? await listAddresses(user.id) : [];
 
   const enriched = deliveries.map((delivery) => ({
     ...delivery,

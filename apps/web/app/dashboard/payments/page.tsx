@@ -4,8 +4,8 @@ import { PaymentsList } from "./payments-list";
 
 export default async function PaymentsPage() {
   const user = await getCurrentUser();
-  const payments = user ? listPayments(user.id) : [];
-  const orders = user ? listOrders(user.id) : [];
+  const payments = user ? await listPayments(user.id) : [];
+  const orders = user ? await listOrders(user.id) : [];
 
   const orderMap = new Map(orders.map((order) => [order.id, order]));
 

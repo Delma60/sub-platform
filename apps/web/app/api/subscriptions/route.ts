@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
-  const subscription = getActiveSubscription(user.id);
+  const subscription = await getActiveSubscription(user.id);
   const plan = subscription ? getPlan(subscription.planId) : null;
   return NextResponse.json(apiSuccess({ subscription, plan }));
 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const subscription = createSubscription(user.id, parsed.data.planId);
+    const subscription = await createSubscription(user.id, parsed.data.planId);
     return NextResponse.json(apiSuccess({ subscription }), { status: 201 });
   } catch (error) {
     return NextResponse.json(

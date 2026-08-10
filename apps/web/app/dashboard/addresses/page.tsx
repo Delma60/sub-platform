@@ -4,7 +4,7 @@ import { AddressBook } from "./address-book";
 
 export default async function AddressesPage() {
   const user = await getCurrentUser();
-  const addresses = user ? listAddresses(user.id) : [];
+  const addresses = user ? await listAddresses(user.id) : [];
 
   return <AddressBook initialAddresses={addresses} />;
 }

@@ -7,7 +7,8 @@ import { createAddress, listAddresses } from "../lib/data-store";
 export async function GET(request: NextRequest) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
-  return NextResponse.json(apiSuccess({ addresses: listAddresses(user.id) }));
+  const addresses = await listAddresses(user.id);
+  return NextResponse.json(apiSuccess({ addresses }));
 }
 
 export async function POST(request: NextRequest) {
@@ -23,6 +24,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const address = createAddress(user.id, parsed.data);
+  const address = await createAddress(user.id, parsed.data);
   return NextResponse.json(apiSuccess({ address }), { status: 201 });
 }

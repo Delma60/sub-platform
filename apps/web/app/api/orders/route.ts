@@ -6,5 +6,6 @@ import { listOrders } from "../lib/data-store";
 export async function GET(request: NextRequest) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
-  return NextResponse.json(apiSuccess({ orders: listOrders(user.id) }));
+  const orders = await listOrders(user.id);
+  return NextResponse.json(apiSuccess({ orders }));
 }

@@ -4,7 +4,7 @@ import { OrdersList } from "./orders-list";
 
 export default async function OrdersPage() {
   const user = await getCurrentUser();
-  const orders = user ? listOrders(user.id) : [];
+  const orders = user ? await listOrders(user.id) : [];
 
   const enrichedOrders = orders.map((order) => ({
     ...order,

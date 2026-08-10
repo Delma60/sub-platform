@@ -8,7 +8,7 @@ import { SubscriptionManager } from "./subscription-manager";
 
 export default async function SubscriptionPage() {
   const user = await getCurrentUser();
-  const subscription = user ? getActiveSubscription(user.id) : null;
+  const subscription = user ? await getActiveSubscription(user.id) : null;
   const currentPlan = subscription ? getPlan(subscription.planId) : null;
   const plans = listPlans();
 

@@ -17,7 +17,7 @@ export async function GET(
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
-  const sub = getSubscriptionById(user.id, params.id);
+  const sub = await getSubscriptionById(user.id, params.id);
   if (!sub) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
 
   return NextResponse.json(
@@ -42,7 +42,7 @@ export async function POST(
         { status: 422 }
       );
     }
-    const sub = resetBoxItem(user.id, params.id, parsed.data.itemId);
+    const sub = await resetBoxItem(user.id, params.id, parsed.data.itemId);
     if (!sub) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
     return NextResponse.json(apiSuccess({ box: getBoxForSubscription(sub) }));
   }
@@ -55,7 +55,7 @@ export async function POST(
     );
   }
 
-  const result = swapBoxItem(user.id, params.id, parsed.data.fromItemId, parsed.data.toItemId);
+  const result = await swapBoxItem(user.id, params.id, parsed.data.fromItemId, parsed.data.toItemId);
   if ("error" in result) {
     return NextResponse.json(apiError(result.error, 422), { status: 422 });
   }

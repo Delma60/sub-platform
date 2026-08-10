@@ -14,8 +14,8 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
-  const subscription = getActiveSubscription(user.id);
-  const deliveries = listDeliveries(user.id);
+  const subscription = await getActiveSubscription(user.id);
+  const deliveries = await listDeliveries(user.id);
   const nextDelivery = subscription
     ? deliveries.find((d) => d.status !== "delivered")
     : undefined;

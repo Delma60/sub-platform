@@ -21,7 +21,7 @@ export async function PATCH(
     );
   }
 
-  const address = updateAddress(user.id, id, parsed.data);
+  const address = await updateAddress(user.id, id, parsed.data);
   if (!address) return NextResponse.json(apiError("Address not found", 404), { status: 404 });
   return NextResponse.json(apiSuccess({ address }));
 }
@@ -34,7 +34,7 @@ export async function DELETE(
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
   const { id } = params;
-  const ok = deleteAddress(user.id, id);
+  const ok = await deleteAddress(user.id, id);
   if (!ok) return NextResponse.json(apiError("Address not found", 404), { status: 404 });
   return NextResponse.json(apiSuccess({ deleted: true }));
 }

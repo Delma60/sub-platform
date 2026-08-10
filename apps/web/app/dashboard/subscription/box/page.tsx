@@ -9,7 +9,7 @@ import { BoxManager } from "./box-manager";
 
 export default async function BoxPage() {
   const user = await getCurrentUser();
-  const subscription = user ? getActiveSubscription(user.id) : null;
+  const subscription = user ? await getActiveSubscription(user.id) : null;
 
   if (!subscription) redirect("/dashboard/subscription");
 

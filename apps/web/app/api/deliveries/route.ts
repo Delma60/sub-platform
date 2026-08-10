@@ -6,7 +6,7 @@ import { listAddresses, listDeliveries } from "../lib/data-store";
 export async function GET(request: NextRequest) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
-  return NextResponse.json(
-    apiSuccess({ deliveries: listDeliveries(user.id), addresses: listAddresses(user.id) })
-  );
+  const deliveries = await listDeliveries(user.id);
+  const addresses = await listAddresses(user.id);
+  return NextResponse.json(apiSuccess({ deliveries, addresses }));
 }
