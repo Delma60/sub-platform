@@ -15,7 +15,7 @@ export async function PATCH(
     return NextResponse.json(apiError("Unsupported action", 422), { status: 422 });
   }
 
-  const result = skipDelivery(user.id, params.id);
+  const result = await skipDelivery(user.id, params.id);
   if ("error" in result) {
     return NextResponse.json(apiError(result.error, 422), { status: 422 });
   }

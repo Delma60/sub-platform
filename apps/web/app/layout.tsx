@@ -9,9 +9,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: "Oja | Fresh food subscriptions",
   description:
     "A premium subscription for fresh groceries, staples, and pantry essentials delivered on your schedule.",
+  openGraph: {
+    title: "Oja | Fresh food subscriptions",
+    description:
+      "Fresh groceries, staples, and pantry essentials delivered on your schedule.",
+    type: "website",
+    locale: "en_NG",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

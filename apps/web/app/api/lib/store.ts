@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from "crypto";
 import { prisma } from "./prisma";
 
 export type StoredUser = {
@@ -26,7 +27,15 @@ function normalizeStoredUser(
 }
 
 const users = new Map<string, StoredUser>();
+const passwordResetTokens = new Map<
+  string,
+  { userId: string; tokenHash: string; expiresAt: string; usedAt: string | null }
+>();
 let dbAvailable: boolean | null = null;
+
+function hashToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
 
 async function isDbAvailable() {
   if (dbAvailable !== null) return dbAvailable;
@@ -233,5 +242,80 @@ export async function countUsers(role?: StoredUser["role"]) {
     Array.from(users.values()).filter((user) =>
       role ? user.role === role : true
     ).length
+  );
+}
+
+export async function createPasswordResetToken(email: string) {
+  const user = await findUserByEmail(email);
+  if (!user) return null;
+
+  const token = randomBytes(32).toString("base64url");
+  const tokenHash = hashToken(token);
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 30);
+
+  if (!(await isDbAvailable())) {
+    passwordResetTokens.set(tokenHash, {
+      userId: user.id,
+      tokenHash,
+      expiresAt: expiresAt.toISOString(),
+      usedAt: null,
+    });
+    return { token, expiresAt: expiresAt.toISOString(), user };
+  }
+
+  return await withDbFallback(
+    async () => {
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          expiresAt,
+        },
+      });
+      return { token, expiresAt: expiresAt.toISOString(), user };
+    },
+    async () => {
+      passwordResetTokens.set(tokenHash, {
+        userId: user.id,
+        tokenHash,
+        expiresAt: expiresAt.toISOString(),
+        usedAt: null,
+      });
+      return { token, expiresAt: expiresAt.toISOString(), user };
+    }
+  );
+}
+
+export async function consumePasswordResetToken(token: string) {
+  const tokenHash = hashToken(token);
+  const now = new Date();
+
+  if (!(await isDbAvailable())) {
+    const record = passwordResetTokens.get(tokenHash);
+    if (!record || record.usedAt || new Date(record.expiresAt) <= now) return null;
+    passwordResetTokens.set(tokenHash, { ...record, usedAt: now.toISOString() });
+    return await findUserById(record.userId);
+  }
+
+  return await withDbFallback(
+    async () => {
+      const record = await prisma.passwordResetToken.findUnique({
+        where: { tokenHash },
+      });
+      if (!record || record.usedAt || record.expiresAt <= now) return null;
+
+      await prisma.passwordResetToken.update({
+        where: { id: record.id },
+        data: { usedAt: now },
+      });
+
+      return await findUserById(record.userId);
+    },
+    async () => {
+      const record = passwordResetTokens.get(tokenHash);
+      if (!record || record.usedAt || new Date(record.expiresAt) <= now) return null;
+      passwordResetTokens.set(tokenHash, { ...record, usedAt: now.toISOString() });
+      return await findUserById(record.userId);
+    }
   );
 }

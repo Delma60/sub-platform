@@ -11,6 +11,15 @@ export const loginSchema = z.object({
   password: z.string().min(8),
 });
 
+export const requestPasswordResetSchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(24),
+  password: z.string().min(8),
+});
+
 export const subscribeSchema = z.object({
   planId: z.enum(["single", "family", "bulk"]),
 });
@@ -77,4 +86,14 @@ export const updateProfileSchema = z.object({
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(8),
   newPassword: z.string().min(8),
+});
+
+export const initiatePaymentSchema = z.object({
+  orderId: z.string().min(1),
+});
+
+export const uploadSignSchema = z.object({
+  fileName: z.string().min(1).max(180),
+  contentType: z.string().min(3).max(120),
+  folder: z.enum(["products", "proofs", "avatars"]).optional(),
 });

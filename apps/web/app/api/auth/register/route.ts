@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { registerSchema } from "../../lib/validation";
 import { createUser, findUserByEmail, hasAdminUser } from "../../lib/store";
@@ -8,9 +8,21 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
 } from "../../lib/auth";
+import { checkRateLimit } from "../../lib/rate-limit";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const limit = checkRateLimit(request, "auth:register", {
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!limit.ok) {
+      return NextResponse.json(apiError("Too many requests", 429), {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfter) },
+      });
+    }
+
     const body = await request.json().catch(() => null);
     const parsed = registerSchema.safeParse(body);
 
