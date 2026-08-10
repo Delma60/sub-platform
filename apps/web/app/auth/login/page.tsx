@@ -7,7 +7,7 @@ import { useState } from "react";
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") ?? "/dashboard";
+  const requestedNext = searchParams.get("next");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +32,13 @@ export default function LoginPage() {
       }
 
       const isAdmin = json?.data?.user?.role === "admin";
-      const destination =
-        nextPath === "/admin" && !isAdmin ? "/dashboard" : nextPath;
+      const destination = requestedNext
+        ? requestedNext === "/admin" && !isAdmin
+          ? "/dashboard"
+          : requestedNext
+        : isAdmin
+        ? "/admin"
+        : "/dashboard";
 
       await router.push(destination);
     } catch {

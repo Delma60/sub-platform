@@ -33,7 +33,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-[var(--paper)] md:flex-row">
       <DashboardSidebar
-        user={{ name: user.name, email: user.email }}
+        user={{ name: user.name, email: user.email, role: user.role }}
         nextDelivery={nextDeliveryInfo}
       />
       <main className="flex-1 px-6 py-8 md:px-10 md:py-10">{children}</main>

@@ -175,14 +175,14 @@ export function AdminSidebar({
         </nav>
 
         <div className={`mb-2 ${collapsed ? "px-3" : "px-5"}`}>
-          <Link
-            href="/"
-            className={`flex items-center gap-3 rounded-md py-2.5 text-[13px] text-white/50 transition hover:text-white ${
-              collapsed ? "justify-center px-0" : "px-3"
-            }`}
-          >
-            ← {!collapsed && "Back to site"}
-          </Link>
+          {!collapsed && (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-3 rounded-md py-2.5 text-[13px] text-white/50 transition hover:text-white"
+            >
+              ← Customer view
+            </Link>
+          )}
         </div>
 
         <div

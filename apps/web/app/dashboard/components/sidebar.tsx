@@ -62,7 +62,7 @@ export function DashboardSidebar({
   user,
   nextDelivery,
 }: {
-  user: { name: string; email: string };
+  user: { name: string; email: string; role: "customer" | "admin" };
   nextDelivery: { dayIndex: number; dateLabel: string } | null;
 }) {
   const pathname = usePathname();
@@ -206,6 +206,15 @@ export function DashboardSidebar({
               ))}
             </div>
           </div>
+        )}
+
+        {user.role === "admin" && !collapsed && (
+          <Link
+            href="/admin"
+            className="mx-3 mb-2 rounded-md px-3 py-2 text-[13px] font-medium text-[var(--accent)] hover:bg-[var(--accent-soft)]"
+          >
+            Switch to admin →
+          </Link>
         )}
 
         <div
