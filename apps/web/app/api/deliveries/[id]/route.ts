@@ -5,11 +5,12 @@ import { skipDelivery } from "../../lib/data-store";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
+  const params = await context.params;
   const body = await request.json().catch(() => null);
   if (body?.action !== "skip") {
     return NextResponse.json(apiError("Unsupported action", 422), { status: 422 });

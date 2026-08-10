@@ -54,7 +54,10 @@ async function isDbAvailable() {
   return dbAvailable;
 }
 
-async function withDbFallback<T>(action: () => Promise<T>, fallback: () => Promise<T>): Promise<T> {
+async function withDbFallback<T>(
+  action: () => Promise<T>,
+  fallback: () => T | Promise<T>
+): Promise<T> {
   try {
     return await action();
   } catch (error) {

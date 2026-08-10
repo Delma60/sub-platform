@@ -1302,7 +1302,7 @@ export async function finalizePaymentByReference(
         fallback.subscriptions.set(subscription.id, subscription);
       }
 
-      return { payment: updatedPayment, subscription };
+      return { payment: updatedPayment, subscription: subscription ?? null };
     }
   );
 }

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { StatusBadge } from "../../dashboard/components/status-badge";
 
-type SubscriptionStatus = "active" | "paused" | "cancelled";
+type SubscriptionStatus = "active" | "paused" | "cancelled" | "payment_failed";
 type PlanId = "single" | "family" | "bulk";
 
 type Row = {
@@ -23,6 +23,7 @@ const FILTERS: { key: SubscriptionStatus | "all"; label: string }[] = [
   { key: "all", label: "All" },
   { key: "active", label: "Active" },
   { key: "paused", label: "Paused" },
+  { key: "payment_failed", label: "Payment failed" },
   { key: "cancelled", label: "Cancelled" },
 ];
 

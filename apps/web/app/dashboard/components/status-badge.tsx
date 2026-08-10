@@ -8,10 +8,11 @@ export function StatusBadge({ status }: { status: string }) {
     "packed",
     "scheduled",
   ]);
-  const NEGATIVE = new Set(["cancelled", "failed", "issue"]);
+  const NEGATIVE = new Set(["cancelled", "failed", "issue", "payment_failed"]);
 
   const LABELS: Record<string, string> = {
     out_for_delivery: "Out for delivery",
+    payment_failed: "Payment failed",
   };
 
   const style = POSITIVE.has(status)

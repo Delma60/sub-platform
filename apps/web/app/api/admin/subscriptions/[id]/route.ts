@@ -9,13 +9,14 @@ import {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const admin = await requireAdmin(request);
   if (!admin) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
   }
 
+  const params = await context.params;
   const { id } = params;
   const body = await request.json().catch(() => null);
   const parsed = subscriptionActionSchema.safeParse(body);

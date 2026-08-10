@@ -12,11 +12,12 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
+  const params = await context.params;
   const sub = await getSubscriptionById(user.id, params.id);
   if (!sub) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
 
@@ -27,11 +28,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
+  const params = await context.params;
   const body = await request.json().catch(() => null);
 
   if (body?.action === "reset") {

@@ -5,11 +5,12 @@ import { getOrderById, listDeliveries, listPayments } from "../../lib/data-store
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
+  const params = await context.params;
   const order = await getOrderById(user.id, params.id);
   if (!order) return NextResponse.json(apiError("Order not found", 404), { status: 404 });
 

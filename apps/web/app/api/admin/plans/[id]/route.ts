@@ -6,13 +6,14 @@ import { updatePlan, PLAN_ID_ORDER, type PlanId } from "../../../lib/data-store"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   const admin = await requireAdmin(request);
   if (!admin) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
   }
 
+  const params = await context.params;
   const { id } = params;
   if (!PLAN_ID_ORDER.includes(id as PlanId)) {
     return NextResponse.json(apiError("Unknown plan", 404), { status: 404 });

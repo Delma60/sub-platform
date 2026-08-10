@@ -6,11 +6,12 @@ import { deleteAddress, updateAddress } from "../../lib/data-store";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
+  const params = await context.params;
   const { id } = params;
   const body = await request.json().catch(() => null);
   const parsed = addressSchema.partial().safeParse(body);
@@ -28,11 +29,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser(request);
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
+  const params = await context.params;
   const { id } = params;
   const ok = await deleteAddress(user.id, id);
   if (!ok) return NextResponse.json(apiError("Address not found", 404), { status: 404 });

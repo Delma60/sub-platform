@@ -16,7 +16,7 @@ type Plan = {
 type Subscription = {
   id: string;
   planId: string;
-  status: "active" | "paused" | "cancelled";
+  status: "active" | "paused" | "cancelled" | "payment_failed";
   nextDeliveryDate: string;
   deliveryDayOfWeek: number | null;
 } | null;
