@@ -147,7 +147,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
             you retry.
           </p>
           <Link
-            href="/dashboard/subscription"
+            href="/u/subscription"
             className="shrink-0 text-xs font-medium text-[#B3261E] underline"
           >
             Manage billing

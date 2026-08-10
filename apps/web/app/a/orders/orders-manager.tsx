@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { StatusBadge } from "../../dashboard/components/status-badge";
+import { StatusBadge } from "../../u/components/status-badge";
 
 type OrderStatus = "processing" | "packed" | "out_for_delivery" | "delivered";
 

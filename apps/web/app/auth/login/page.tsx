@@ -41,14 +41,20 @@ function LoginContent() {
         return;
       }
 
-      const isAdmin = json?.data?.user?.role === "admin";
+      const role = json?.data?.user?.role;
+      const isAdmin = role === "admin";
+      const isRider = role === "rider";
       const destination = requestedNext
-        ? requestedNext === "/admin" && !isAdmin
-          ? "/dashboard"
+        ? requestedNext.startsWith("/a") && !isAdmin
+          ? "/u"
+          : requestedNext.startsWith("/r") && !isAdmin && !isRider
+          ? "/u"
           : requestedNext
         : isAdmin
-          ? "/admin"
-          : "/dashboard";
+          ? "/a"
+          : isRider
+            ? "/r"
+          : "/u";
 
       await router.push(destination);
     } catch {

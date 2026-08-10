@@ -48,7 +48,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
             active.
           </p>
           <Link
-            href="/dashboard/subscription"
+            href="/u/subscription"
             className="mt-2 text-sm font-medium text-[#24402F] underline"
           >
             Choose a plan

@@ -1,15 +1,15 @@
 import Link from "next/link";
 
 const links = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/subscriptions", label: "Subscriptions" },
-  { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/deliveries", label: "Deliveries" },
-  { href: "/admin/payments", label: "Payments" },
-  { href: "/admin/customers", label: "Customers" },
-  { href: "/admin/analytics", label: "Analytics" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/a", label: "Overview" },
+  { href: "/a/products", label: "Products" },
+  { href: "/a/subscriptions", label: "Subscriptions" },
+  { href: "/a/orders", label: "Orders" },
+  { href: "/a/deliveries", label: "Deliveries" },
+  { href: "/a/payments", label: "Payments" },
+  { href: "/a/customers", label: "Customers" },
+  { href: "/a/analytics", label: "Analytics" },
+  { href: "/a/settings", label: "Settings" },
 ];
 
 export default function AdminNav() {

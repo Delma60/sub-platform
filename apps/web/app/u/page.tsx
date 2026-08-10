@@ -69,13 +69,13 @@ export default async function DashboardOverviewPage() {
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/subscription"
+              href="/u/subscription"
               className="rounded-md bg-[#24402F] px-4 py-2.5 text-sm font-medium text-[#FAF6EF] transition hover:bg-[#1a2f22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#24402F]/40"
             >
               {subscription ? "Manage subscription" : "Choose a plan"}
             </Link>
             <Link
-              href="/dashboard/addresses"
+              href="/u/addresses"
               className="rounded-md border border-[#17251C]/15 px-4 py-2.5 text-sm font-medium text-[#17251C] transition hover:bg-[#17251C]/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#24402F]/30"
             >
               Add address
@@ -124,7 +124,7 @@ export default async function DashboardOverviewPage() {
             </>
           )}
           <Link
-            href="/dashboard/subscription"
+            href="/u/subscription"
             className="mt-4 inline-block text-sm font-medium text-[#24402F] underline"
           >
             {subscription ? "View plan details" : "Choose a plan"}
@@ -201,7 +201,7 @@ export default async function DashboardOverviewPage() {
             </div>
           </div>
           <Link
-            href="/dashboard/settings"
+            href="/u/settings"
             className="mt-4 inline-block text-sm font-medium text-[#24402F] underline"
           >
             Manage account
@@ -215,7 +215,7 @@ export default async function DashboardOverviewPage() {
             Recent orders
           </p>
           <Link
-            href="/dashboard/orders"
+            href="/u/orders"
             className="text-sm text-[#24402F] underline"
           >
             View all

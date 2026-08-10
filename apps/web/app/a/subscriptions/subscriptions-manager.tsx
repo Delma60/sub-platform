@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { StatusBadge } from "../../dashboard/components/status-badge";
+import { StatusBadge } from "../../u/components/status-badge";
 
 type SubscriptionStatus = "active" | "paused" | "cancelled" | "payment_failed";
 type PlanId = "single" | "family" | "bulk";

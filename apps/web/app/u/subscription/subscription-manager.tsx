@@ -164,7 +164,7 @@ export function SubscriptionManager({
                 </div>
 
                 <Link
-                  href="/dashboard/subscription/box"
+                  href="/u/subscription/box"
                   className="mt-4 inline-block text-sm font-medium text-[#24402F] underline"
                 >
                   Customize your box →

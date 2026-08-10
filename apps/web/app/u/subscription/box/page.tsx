@@ -11,7 +11,7 @@ export default async function BoxPage() {
   const user = await getCurrentUser();
   const subscription = user ? await getActiveSubscription(user.id) : null;
 
-  if (!subscription) redirect("/dashboard/subscription");
+  if (!subscription) redirect("/u/subscription");
 
   const box = getBoxForSubscription(subscription);
   const catalog = getSwapCatalog(subscription.planId);

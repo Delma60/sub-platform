@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DeliveryStatusPill } from "../../dashboard/deliveries/delivery-status-pill";
+import { DeliveryStatusPill } from "../../u/deliveries/delivery-status-pill";
 
 type DeliveryStatus =
   | "scheduled"

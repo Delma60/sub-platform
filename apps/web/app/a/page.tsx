@@ -16,7 +16,7 @@ import {
   monthlyEquivalentRevenue,
 } from "../api/lib/data-store";
 import { listUsersByIds, countUsers } from "../api/lib/store";
-import { StatusBadge } from "../dashboard/components/status-badge";
+import { StatusBadge } from "../u/components/status-badge";
 
 export default async function AdminPage() {
   const [subscriptions, orders, payments, deliveries, customerCount] =
@@ -93,7 +93,7 @@ export default async function AdminPage() {
           <div className="flex gap-4">
             {issueDeliveries > 0 && (
               <Link
-                href="/admin/deliveries"
+                href="/a/deliveries"
                 className="text-sm font-medium text-[#B3261E] underline"
               >
                 Review deliveries
@@ -101,7 +101,7 @@ export default async function AdminPage() {
             )}
             {failedPayments > 0 && (
               <Link
-                href="/admin/payments"
+                href="/a/payments"
                 className="text-sm font-medium text-[#B3261E] underline"
               >
                 Review payments
@@ -184,7 +184,7 @@ export default async function AdminPage() {
               Recent orders
             </p>
             <Link
-              href="/admin/orders"
+              href="/a/orders"
               className="text-sm text-[#24402F] underline"
             >
               View all
@@ -232,7 +232,7 @@ export default async function AdminPage() {
               Recent payments
             </p>
             <Link
-              href="/admin/payments"
+              href="/a/payments"
               className="text-sm text-[#24402F] underline"
             >
               View all

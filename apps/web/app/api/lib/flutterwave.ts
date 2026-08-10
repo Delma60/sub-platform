@@ -17,7 +17,7 @@ export async function initializeFlutterwavePayment(input: FlutterwaveInitInput) 
   if (!secretKey) {
     return {
       mode: "test_unconfigured" as const,
-      paymentLink: `/dashboard/payments?tx_ref=${encodeURIComponent(input.txRef)}`,
+      paymentLink: `/u/payments?tx_ref=${encodeURIComponent(input.txRef)}`,
       txRef: input.txRef,
     };
   }

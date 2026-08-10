@@ -33,7 +33,7 @@ export function verifyPassword(password: string, stored: string) {
 type SessionPayload = {
   sub: string;
   email: string;
-  role: "customer" | "admin";
+  role: "customer" | "admin" | "rider";
   exp: number;
 };
 

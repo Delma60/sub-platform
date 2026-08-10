@@ -63,7 +63,7 @@ export default async function DeliveriesPage() {
               </p>
             </div>
             <Link
-              href="/dashboard/addresses"
+              href="/u/addresses"
               className="shrink-0 rounded-full bg-[#2E3B29] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#243020]"
             >
               Add address
@@ -150,7 +150,7 @@ export default async function DeliveriesPage() {
               orders.
             </p>
             <Link
-              href="/dashboard/subscription"
+              href="/u/subscription"
               className="mt-3 text-sm font-medium text-[#2E3B29] underline"
             >
               Choose a plan

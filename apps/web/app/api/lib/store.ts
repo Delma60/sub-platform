@@ -6,7 +6,7 @@ export type StoredUser = {
   name: string;
   email: string;
   passwordHash: string;
-  role: "customer" | "admin";
+  role: "customer" | "admin" | "rider";
   createdAt: string;
 };
 

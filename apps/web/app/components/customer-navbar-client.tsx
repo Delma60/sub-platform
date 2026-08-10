@@ -52,7 +52,7 @@ export function CustomerNavbarClient({ user }: { user: User | null }) {
           {user ? (
             <>
               <Link
-                href="/dashboard"
+                href="/u"
                 className="flex items-center gap-2 text-[13px] font-medium text-[var(--ink)] transition hover:text-[var(--accent)]"
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[11px] font-medium text-[var(--accent)]">
@@ -120,7 +120,7 @@ export function CustomerNavbarClient({ user }: { user: User | null }) {
             {user ? (
               <div className="mt-2 flex flex-col gap-3 border-t border-[var(--line)] pt-4">
                 <Link
-                  href="/dashboard"
+                  href="/u"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 text-sm font-medium text-[var(--ink)]"
                 >

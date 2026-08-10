@@ -4,16 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
+  BoxIcon,
   ChevronIcon,
   CloseIcon,
-  DeliveriesIcon,
+  GearIcon,
   MenuIcon,
   OrdersIcon,
   OverviewIcon,
-  PaymentsIcon,
-  PlansIcon,
-  ProductsIcon,
-  SubscriptionsIcon,
+  PinIcon,
+  ReceiptIcon,
+  TruckIcon,
 } from "./icons";
 import { LucideIcon } from "lucide-react";
 
@@ -28,41 +28,48 @@ const NAV_GROUPS: { label: string | null; items: NavItem[] }[] = [
   {
     label: null,
     items: [
-      { href: "/admin", label: "Overview", icon: OverviewIcon, exact: true },
-    ],
-  },
-  {
-    label: "Catalog",
-    items: [
-      { href: "/admin/products", label: "Products", icon: ProductsIcon },
-      { href: "/admin/plans", label: "Plans", icon: PlansIcon },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
       {
-        href: "/admin/subscriptions",
-        label: "Subscriptions",
-        icon: SubscriptionsIcon,
+        href: "/u",
+        label: "Overview",
+        icon: OverviewIcon,
+        exact: true,
       },
-      { href: "/admin/orders", label: "Orders", icon: OrdersIcon },
-      { href: "/admin/deliveries", label: "Deliveries", icon: DeliveriesIcon },
-      { href: "/admin/payments", label: "Payments", icon: PaymentsIcon },
     ],
+  },
+  {
+    label: "Manage",
+    items: [
+      { href: "/u/subscription", label: "Subscription", icon: BoxIcon },
+      { href: "/u/orders", label: "Orders", icon: OrdersIcon },
+      { href: "/u/deliveries", label: "Deliveries", icon: TruckIcon },
+      { href: "/u/addresses", label: "Addresses", icon: PinIcon },
+      {
+        href: "/u/payments",
+        label: "Payment history",
+        icon: ReceiptIcon,
+      },
+    ],
+  },
+  {
+    label: "Account",
+    items: [{ href: "/u/settings", label: "Settings", icon: GearIcon }],
   },
 ];
 
-export function AdminSidebar({
-  admin,
+const WEEK_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
+
+export function DashboardSidebar({
+  user,
+  nextDelivery,
 }: {
-  admin: { name: string; email: string };
+  user: { name: string; email: string; role: "customer" | "admin" };
+  nextDelivery: { dayIndex: number; dateLabel: string } | null;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  const initials = admin.name
+  const initials = user.name
     .split(" ")
     .map((part) => part[0])
     .slice(0, 2)
@@ -76,20 +83,17 @@ export function AdminSidebar({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-[#2A2A26] bg-[#17251C] px-4 py-3 md:hidden">
+      <div className="flex items-center justify-between border-b border-[var(--line)] bg-[var(--paper)] px-4 py-3 md:hidden">
         <Link
-          href="/admin"
-          className="flex items-center gap-2 text-lg font-semibold text-white"
+          href="/"
+          className="text-lg font-semibold tracking-[-0.01em] text-[var(--ink)]"
         >
           Oja
-          <span className="rounded-full bg-[#BC8A31]/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#D4A94E]">
-            Admin
-          </span>
         </Link>
         <button
           onClick={() => setMobileOpen(true)}
           aria-label="Open menu"
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-[var(--line)] text-[var(--ink)]"
         >
           <MenuIcon />
         </button>
@@ -97,13 +101,13 @@ export function AdminSidebar({
 
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 transition-opacity md:hidden"
+          className="fixed inset-0 z-40 bg-black/20 transition-opacity md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-[#2A2A26] bg-[#17251C] py-6 text-white transition-all duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-[var(--line)] bg-[var(--surface)] py-6 transition-all duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${collapsed ? "md:w-[76px]" : "w-64 md:w-64"}`}
       >
@@ -112,26 +116,23 @@ export function AdminSidebar({
         >
           {!collapsed && (
             <Link
-              href="/admin"
-              className="flex items-center gap-2 text-lg font-semibold text-white"
+              href="/"
+              className="text-lg font-semibold tracking-[-0.01em] text-[var(--ink)]"
             >
               Oja
-              <span className="rounded-full bg-[#BC8A31]/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#D4A94E]">
-                Admin
-              </span>
             </Link>
           )}
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
-            className="text-white/60 md:hidden"
+            className="text-[var(--ink-soft)] md:hidden"
           >
             <CloseIcon />
           </button>
           <button
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="hidden h-7 w-7 items-center justify-center rounded-md text-white/50 transition hover:bg-white/5 hover:text-white md:flex"
+            className="hidden h-7 w-7 items-center justify-center rounded-md text-[var(--ink-soft)] transition hover:bg-[var(--accent-soft)] hover:text-[var(--ink)] md:flex"
           >
             <ChevronIcon
               className={`transition-transform ${collapsed ? "rotate-180" : ""}`}
@@ -143,7 +144,7 @@ export function AdminSidebar({
           {NAV_GROUPS.map((group, gi) => (
             <div key={gi} className={gi === 0 ? "" : "mt-5"}>
               {group.label && !collapsed && (
-                <p className="mb-1.5 px-2 text-[10px] font-medium uppercase tracking-[0.16em] text-white/40">
+                <p className="mb-1.5 px-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-soft)]/70">
                   {group.label}
                 </p>
               )}
@@ -158,12 +159,12 @@ export function AdminSidebar({
                       onClick={() => setMobileOpen(false)}
                       aria-current={active ? "page" : undefined}
                       title={collapsed ? item.label : undefined}
-                      className={`flex items-center gap-3 rounded-md py-2.5 text-[14px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BC8A31]/40 ${
+                      className={`flex items-center gap-3 rounded-md py-2.5 text-[14px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 ${
                         collapsed ? "justify-center px-0" : "px-3"
                       } ${
                         active
-                          ? "bg-white/10 text-white"
-                          : "text-white/60 hover:bg-white/5 hover:text-white"
+                          ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                          : "text-[var(--ink-soft)] hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
                       }`}
                     >
                       <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -176,43 +177,72 @@ export function AdminSidebar({
           ))}
         </nav>
 
-        <div className={`mb-2 ${collapsed ? "px-3" : "px-5"}`}>
-          {!collapsed && (
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-3 rounded-md py-2.5 text-[13px] text-white/50 transition hover:text-white"
-            >
-              ← Customer view
-            </Link>
-          )}
-        </div>
+        {nextDelivery && !collapsed && (
+          <div className="mx-3 mt-6 rounded-md border border-[var(--line)] p-3">
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--ink-soft)]/80">
+              Next delivery
+            </p>
+            <p className="mt-1 text-[13px] font-medium text-[var(--ink)]">
+              {nextDelivery.dateLabel}
+            </p>
+            <div className="relative mt-3 h-px bg-[var(--line)]">
+              <div
+                className="absolute -top-[3px] h-1.5 w-1.5 rounded-full bg-[var(--accent)]"
+                style={{ left: `${(nextDelivery.dayIndex / 6) * 100}%` }}
+              />
+            </div>
+            <div className="mt-1.5 flex justify-between text-[9px] text-[var(--ink-soft)]">
+              {WEEK_LETTERS.map((letter, i) => (
+                <span
+                  key={i}
+                  className={
+                    i === nextDelivery.dayIndex
+                      ? "font-semibold text-[var(--ink)]"
+                      : ""
+                  }
+                >
+                  {letter}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {user.role === "admin" && !collapsed && (
+          <Link
+            href="/a"
+            className="mx-3 mb-2 rounded-md px-3 py-2 text-[13px] font-medium text-[var(--accent)] hover:bg-[var(--accent-soft)]"
+          >
+            Switch to admin →
+          </Link>
+        )}
 
         <div
-          className={`flex items-center gap-3 border-t border-white/10 pt-5 ${
+          className={`mt-6 flex items-center gap-3 border-t border-[var(--line)] pt-5 ${
             collapsed ? "justify-center px-0" : "px-5"
           }`}
         >
           <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#BC8A31]/20 text-[13px] font-medium text-[#D4A94E]"
-            title={collapsed ? admin.name : undefined}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[13px] font-medium text-[var(--accent)]"
+            title={collapsed ? user.name : undefined}
           >
             {initials || "?"}
           </div>
           {!collapsed && (
             <>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-white">
-                  {admin.name}
+                <p className="truncate text-[13px] font-medium text-[var(--ink)]">
+                  {user.name}
                 </p>
-                <p className="truncate text-[12px] text-white/50">
-                  {admin.email}
+                <p className="truncate text-[12px] text-[var(--ink-soft)]">
+                  {user.email}
                 </p>
               </div>
               <form action="/api/auth/logout" method="POST">
                 <button
                   type="submit"
                   aria-label="Sign out"
-                  className="text-white/50 transition hover:text-white"
+                  className="text-[var(--ink-soft)] transition hover:text-[var(--ink)]"
                 >
                   <LogoutIcon />
                 </button>
