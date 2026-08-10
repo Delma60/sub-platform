@@ -13,6 +13,18 @@ export type CreateUserInput = Omit<StoredUser, "id" | "createdAt"> & {
   role?: StoredUser["role"];
 };
 
+function normalizeStoredUser(
+  user: Omit<StoredUser, "createdAt"> & { createdAt: string | Date }
+): StoredUser {
+  return {
+    ...user,
+    createdAt:
+      typeof user.createdAt === "string"
+        ? user.createdAt
+        : user.createdAt.toISOString(),
+  };
+}
+
 const users = new Map<string, StoredUser>();
 let dbAvailable: boolean | null = null;
 
@@ -56,8 +68,21 @@ export async function findUserByEmail(email: string) {
     const user = await prisma.user.findUnique({
       where: { email: normalized },
     });
-    return user ?? null;
+    return user ? normalizeStoredUser(user) : null;
   }, () => users.get(normalized) ?? null);
+}
+
+export async function hasAdminUser() {
+  if (!(await isDbAvailable())) {
+    return Array.from(users.values()).some((user) => user.role === "admin");
+  }
+
+  return await withDbFallback(async () => {
+    const user = await prisma.user.findFirst({
+      where: { role: "admin" },
+    });
+    return Boolean(user);
+  }, () => Array.from(users.values()).some((user) => user.role === "admin"));
 }
 
 export async function findUserById(id: string) {
@@ -69,7 +94,7 @@ export async function findUserById(id: string) {
     const user = await prisma.user.findUnique({
       where: { id },
     });
-    return user ?? null;
+    return user ? normalizeStoredUser(user) : null;
   }, () => Array.from(users.values()).find((user) => user.id === id) ?? null);
 }
 
@@ -88,13 +113,15 @@ export async function createUser(user: CreateUserInput) {
   }
 
   return await withDbFallback(async () => {
-    return prisma.user.create({
+    const record = await prisma.user.create({
       data: {
         name: user.name,
         email: user.email.toLowerCase(),
         passwordHash: user.passwordHash,
+        role,
       },
     });
+    return normalizeStoredUser(record);
   }, () => {
     const record: StoredUser = {
       ...user,
@@ -109,7 +136,7 @@ export async function createUser(user: CreateUserInput) {
 
 export async function updateUser(
   id: string,
-  patch: Partial<Pick<StoredUser, "name" | "email" | "passwordHash">>
+  patch: Partial<Pick<StoredUser, "name" | "email" | "passwordHash" | "role">>
 ) {
   if (!(await isDbAvailable())) {
     const user = await findUserById(id);
@@ -141,10 +168,11 @@ export async function updateUser(
         name: patch.name ?? user.name,
         email: patch.email ? patch.email.toLowerCase() : user.email,
         passwordHash: patch.passwordHash ?? user.passwordHash,
+        role: patch.role ?? user.role,
       },
     });
 
-    return updated;
+    return normalizeStoredUser(updated);
   }, async () => {
     const user = await findUserById(id);
     if (!user) return null;

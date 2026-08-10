@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { loginSchema } from "../../lib/validation";
-import { findUserByEmail } from "../../lib/store";
+import { findUserByEmail, hasAdminUser, updateUser } from "../../lib/store";
 import {
   createSessionToken,
   verifyPassword,
@@ -26,6 +26,17 @@ export async function POST(request: Request) {
       return NextResponse.json(apiError("Invalid email or password", 401), {
         status: 401,
       });
+    }
+
+    const adminSeedEmail = process.env.ADMIN_SEED_EMAIL?.trim().toLowerCase();
+    if (
+      adminSeedEmail &&
+      email.toLowerCase() === adminSeedEmail &&
+      !(await hasAdminUser()) &&
+      user.role !== "admin"
+    ) {
+      await updateUser(user.id, { role: "admin" });
+      user.role = "admin";
     }
 
     const token = createSessionToken({

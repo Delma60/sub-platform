@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { registerSchema } from "../../lib/validation";
-import { createUser, findUserByEmail } from "../../lib/store";
+import { createUser, findUserByEmail, hasAdminUser } from "../../lib/store";
 import {
   createSessionToken,
   hashPassword,
@@ -20,6 +20,12 @@ export async function POST(request: Request) {
     }
 
     const { name, email, password } = parsed.data;
+    const adminSeedEmail = process.env.ADMIN_SEED_EMAIL?.trim().toLowerCase();
+    const isFirstAdmin =
+      adminSeedEmail &&
+      email.toLowerCase() === adminSeedEmail &&
+      !(await hasAdminUser());
+    const role = isFirstAdmin ? "admin" : "customer";
 
     if (await findUserByEmail(email)) {
       return NextResponse.json(
@@ -32,6 +38,7 @@ export async function POST(request: Request) {
       name,
       email,
       passwordHash: hashPassword(password),
+      role,
     });
     const token = createSessionToken({
       sub: user.id,
