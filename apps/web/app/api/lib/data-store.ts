@@ -12,7 +12,9 @@ export type Plan = {
   features: string[];
 };
 
-export const PLANS: Plan[] = [
+export const PLAN_ID_ORDER: PlanId[] = ["single", "family", "bulk"];
+
+const PLAN_DEFAULTS: Plan[] = [
   {
     id: "single",
     name: "Single",
@@ -45,6 +47,10 @@ export const PLANS: Plan[] = [
     ],
   },
 ];
+
+const fallbackPlans = new Map<PlanId, Plan>(
+  PLAN_DEFAULTS.map((plan) => [plan.id, { ...plan }]),
+);
 
 export type SubscriptionStatus = "active" | "paused" | "cancelled";
 
@@ -222,6 +228,7 @@ const fallback = {
   deliveries: new Map<string, StoredDelivery>(),
   payments: new Map<string, StoredPayment>(),
   products: new Map<string, StoredProduct>(),
+  plans: fallbackPlans,
 };
 
 function id(prefix: string) {
@@ -511,12 +518,71 @@ export async function deleteProduct(productId: string): Promise<boolean> {
   );
 }
 
-export function listPlans() {
-  return PLANS;
+function serializePlan(row: {
+  id: string;
+  name: string;
+  price: number;
+  frequency: "weekly" | "biweekly" | "monthly";
+  features: string[];
+}): Plan {
+  return {
+    id: row.id as PlanId,
+    name: row.name,
+    price: row.price,
+    frequency: row.frequency,
+    features: row.features,
+  };
 }
 
-export function getPlan(planId: string) {
-  return PLANS.find((p) => p.id === planId) ?? null;
+export async function listPlans(): Promise<Plan[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.plan.findMany();
+      const byId = new Map(rows.map((r) => [r.id as PlanId, serializePlan(r)]));
+      return PLAN_ID_ORDER.map((id) => byId.get(id)).filter((p): p is Plan => Boolean(p));
+    },
+    () => PLAN_ID_ORDER.map((id) => fallback.plans.get(id)).filter((p): p is Plan => Boolean(p))
+  );
+}
+
+export async function getPlan(planId: string): Promise<Plan | null> {
+  if (!PLAN_ID_ORDER.includes(planId as PlanId)) return null;
+  return withDbFallback(
+    async () => {
+      const row = await prisma.plan.findUnique({ where: { id: planId as PlanId } });
+      return row ? serializePlan(row) : null;
+    },
+    () => fallback.plans.get(planId as PlanId) ?? null
+  );
+}
+
+export async function updatePlan(
+  planId: PlanId,
+  patch: Partial<Pick<Plan, "name" | "price" | "frequency" | "features">>,
+): Promise<Plan | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.plan.findUnique({ where: { id: planId } });
+      if (!existing) return null;
+      const row = await prisma.plan.update({
+        where: { id: planId },
+        data: {
+          name: patch.name ?? existing.name,
+          price: patch.price ?? existing.price,
+          frequency: patch.frequency ?? existing.frequency,
+          features: patch.features ?? existing.features,
+        },
+      });
+      return serializePlan(row);
+    },
+    () => {
+      const existing = fallback.plans.get(planId);
+      if (!existing) return null;
+      const updated: Plan = { ...existing, ...patch };
+      fallback.plans.set(planId, updated);
+      return updated;
+    }
+  );
 }
 
 export async function listAddresses(userId: string): Promise<StoredAddress[]> {
@@ -688,7 +754,7 @@ export async function getSubscriptionById(
 }
 
 export async function createSubscription(userId: string, planId: PlanId): Promise<StoredSubscription> {
-  const plan = getPlan(planId);
+  const plan = await getPlan(planId);
   if (!plan) throw new Error("Invalid plan");
 
   return withDbFallback(
@@ -847,7 +913,7 @@ export async function changeSubscriptionPlan(
   subscriptionId: string,
   planId: PlanId
 ): Promise<StoredSubscription | null> {
-  const plan = getPlan(planId);
+  const plan = await getPlan(planId);
   if (!plan) return null;
 
   return withDbFallback(
@@ -1071,7 +1137,8 @@ export async function skipDelivery(
       const sub = order ? await prisma.subscription.findUnique({ where: { id: order.subscriptionId } }) : null;
       if (!order || !sub) return { error: "Could not find the related subscription" };
 
-      const plan = getPlan(sub.planId)!;
+      const plan = await getPlan(sub.planId);
+      if (!plan) return { error: "Unable to resolve the plan for this subscription" };
       const cycleDays = cycleDaysForPlan(plan);
       const nextDate =
         sub.deliveryDayOfWeek != null
@@ -1111,7 +1178,7 @@ export async function skipDelivery(
 
       return { delivery: serializeDelivery(newDeliveryRow) };
     },
-    () => {
+    async () => {
       const delivery = fallback.deliveries.get(deliveryId);
       if (!delivery || delivery.userId !== userId) return { error: "Delivery not found" };
       if (delivery.status === "delivered" || delivery.status === "skipped") {
@@ -1125,7 +1192,8 @@ export async function skipDelivery(
       delivery.status = "skipped";
       fallback.deliveries.set(delivery.id, delivery);
 
-      const plan = getPlan(sub.planId)!;
+      const plan = await getPlan(sub.planId);
+      if (!plan) return { error: "Could not find the related plan" };
       const cycleDays = cycleDaysForPlan(plan);
       const nextDate =
         sub.deliveryDayOfWeek != null

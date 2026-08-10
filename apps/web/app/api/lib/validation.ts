@@ -21,6 +21,13 @@ export const subscriptionActionSchema = z.object({
   dayOfWeek: z.number().int().min(0).max(6).optional(),
 });
 
+export const planUpdateSchema = z.object({
+  name: z.string().min(2).optional(),
+  price: z.number().int().nonnegative().optional(),
+  frequency: z.enum(["weekly", "biweekly", "monthly"]).optional(),
+  features: z.array(z.string().min(1)).min(1).max(12).optional(),
+});
+
 export const swapBoxItemSchema = z.object({
   fromItemId: z.string().min(1),
   toItemId: z.string().min(1),

@@ -24,7 +24,7 @@ export default async function DashboardOverviewPage() {
   const greeting = greetingForHour(new Date().getHours());
 
   const subscription = user ? await getActiveSubscription(user.id) : null;
-  const plan = subscription ? getPlan(subscription.planId) : null;
+  const plan = subscription ? await getPlan(subscription.planId) : null;
   const orders = user ? await listOrders(user.id) : [];
   const deliveries = user ? await listDeliveries(user.id) : [];
   const nextDelivery = deliveries.find((d) => d.status !== "delivered");

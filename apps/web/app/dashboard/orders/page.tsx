@@ -5,10 +5,12 @@ import { OrdersList } from "./orders-list";
 export default async function OrdersPage() {
   const user = await getCurrentUser();
   const orders = user ? await listOrders(user.id) : [];
+  const plans = user ? await listPlans() : [];
+  const planMap = new Map(plans.map((plan) => [plan.id, plan]));
 
   const enrichedOrders = orders.map((order) => ({
     ...order,
-    planName: getPlan(order.planId)?.name ?? "Plan",
+    planName: planMap.get(order.planId)?.name ?? "Plan",
   }));
 
   const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);

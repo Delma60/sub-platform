@@ -18,6 +18,12 @@ enum PlanId {
   bulk
 }
 
+enum PlanFrequency {
+  weekly
+  biweekly
+  monthly
+}
+
 enum SubscriptionStatus {
   active
   paused
@@ -155,4 +161,13 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   @@index([category])
+}
+
+model Plan {
+  id        PlanId        @id
+  name      String
+  price     Int
+  frequency PlanFrequency
+  features  String[]
+  updatedAt DateTime      @updatedAt
 }

@@ -13,8 +13,8 @@ import {
   listAllPayments,
   listAllDeliveries,
   getPlan,
+  listPlans,
   monthlyEquivalentRevenue,
-  PLANS,
 } from "../api/lib/data-store";
 import { listUsersByIds, countUsers } from "../api/lib/store";
 import { StatusBadge } from "../dashboard/components/status-badge";
@@ -29,11 +29,13 @@ export default async function AdminPage() {
       countUsers("customer"),
     ]);
 
+  const plans = await listPlans();
+  const planMap = new Map(plans.map((plan) => [plan.id, plan]));
   const activeSubs = subscriptions.filter((s) => s.status === "active");
 
   const mrr = Math.round(
     activeSubs.reduce((sum, sub) => {
-      const plan = getPlan(sub.planId);
+      const plan = planMap.get(sub.planId);
       return plan ? sum + monthlyEquivalentRevenue(plan) : sum;
     }, 0),
   );
@@ -149,7 +151,7 @@ export default async function AdminPage() {
           Active subscriptions by plan
         </p>
         <div className="mt-5 flex flex-col gap-4">
-          {PLANS.map((plan) => {
+          {plans.map((plan) => {
             const count = activeSubs.filter((s) => s.planId === plan.id).length;
             const pct = activeSubs.length
               ? Math.round((count / activeSubs.length) * 100)
@@ -205,7 +207,7 @@ export default async function AdminPage() {
                         {orderUser?.name ?? "Unknown customer"}
                       </p>
                       <p className="text-xs text-[#6B6558]">
-                        {getPlan(order.planId)?.name ?? "Plan"} ·{" "}
+                        {planMap.get(order.planId)?.name ?? "Plan"} ·{" "}
                         {new Date(order.createdAt).toLocaleDateString("en-NG", {
                           month: "short",
                           day: "numeric",

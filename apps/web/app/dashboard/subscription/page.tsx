@@ -9,8 +9,8 @@ import { SubscriptionManager } from "./subscription-manager";
 export default async function SubscriptionPage() {
   const user = await getCurrentUser();
   const subscription = user ? await getActiveSubscription(user.id) : null;
-  const currentPlan = subscription ? getPlan(subscription.planId) : null;
-  const plans = listPlans();
+  const currentPlan = subscription ? await getPlan(subscription.planId) : null;
+  const plans = await listPlans();
 
   return (
     <div className="flex flex-col gap-6">

@@ -6,12 +6,14 @@ export default async function PaymentsPage() {
   const user = await getCurrentUser();
   const payments = user ? await listPayments(user.id) : [];
   const orders = user ? await listOrders(user.id) : [];
+  const plans = user ? await listPlans() : [];
 
+  const planMap = new Map(plans.map((plan) => [plan.id, plan]));
   const orderMap = new Map(orders.map((order) => [order.id, order]));
 
   const enriched = payments.map((payment) => {
     const order = orderMap.get(payment.orderId);
-    const plan = order ? getPlan(order.planId) : null;
+    const plan = order ? planMap.get(order.planId) : null;
     return {
       ...payment,
       planName: plan?.name ?? null,

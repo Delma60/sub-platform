@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
   const subscription = await getActiveSubscription(user.id);
-  const plan = subscription ? getPlan(subscription.planId) : null;
+  const plan = subscription ? await getPlan(subscription.planId) : null;
   return NextResponse.json(apiSuccess({ subscription, plan }));
 }
 
