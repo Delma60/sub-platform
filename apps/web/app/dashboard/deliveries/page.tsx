@@ -22,7 +22,12 @@ export default async function DeliveriesPage() {
   }));
 
   const upcoming = enriched
-    .filter((d) => d.status === "scheduled" || d.status === "out_for_delivery" || d.status === "issue")
+    .filter(
+      (d) =>
+        d.status === "scheduled" ||
+        d.status === "out_for_delivery" ||
+        d.status === "issue",
+    )
     .sort((a, b) => (a.scheduledDate < b.scheduledDate ? -1 : 1));
 
   const past = enriched
