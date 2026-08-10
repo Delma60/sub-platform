@@ -609,6 +609,7 @@ export async function createAddress(
     async () => {
       const existingCount = await prisma.address.count({ where: { userId } });
       const isDefault = input.isDefault ?? existingCount === 0;
+      const now = new Date();
 
       const row = await prisma.$transaction(async (tx) => {
         if (isDefault) {
@@ -624,6 +625,7 @@ export async function createAddress(
             city: input.city,
             state: input.state,
             isDefault,
+            updatedAt: now,
           },
         });
       });
@@ -784,6 +786,7 @@ export async function createSubscription(userId: string, planId: PlanId): Promis
             nextDeliveryDate,
             deliveryDayOfWeek: null,
             itemSwaps: {},
+            updatedAt: now,
           },
         });
 
