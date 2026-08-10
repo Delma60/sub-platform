@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from "../../../lib/response";
 import { requireAdmin } from "../../../lib/require-admin";
 import { adminDeliveryUpdateSchema } from "../../../lib/validation";
 import { adminUpdateDeliveryStatus } from "../../../lib/data-store";
+import { notifyDeliveryStatusUpdated } from "../../../lib/notifications";
 
 export async function PATCH(
   request: NextRequest,
@@ -27,5 +28,8 @@ export async function PATCH(
   if (!delivery) {
     return NextResponse.json(apiError("Delivery not found", 404), { status: 404 });
   }
+  await notifyDeliveryStatusUpdated(delivery).catch((error) => {
+    console.error("Delivery status notification failed:", error);
+  });
   return NextResponse.json(apiSuccess({ delivery }));
 }

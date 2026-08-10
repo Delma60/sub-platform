@@ -121,6 +121,42 @@ export type StoredPayment = {
   createdAt: string;
 };
 
+export type NotificationChannel = "in_app" | "email" | "sms";
+export type NotificationStatus = "sent" | "failed" | "skipped";
+export type NotificationType =
+  | "order_confirmation"
+  | "receipt"
+  | "delivery_reminder"
+  | "payment_success"
+  | "payment_failed"
+  | "delivery_status";
+
+export type StoredNotificationPreference = {
+  userId: string;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  orderUpdates: boolean;
+  paymentUpdates: boolean;
+  deliveryReminders: boolean;
+  updatedAt: string;
+};
+
+export type StoredNotification = {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  channel: NotificationChannel;
+  status: NotificationStatus;
+  title: string;
+  body: string;
+  metadata: Record<string, string>;
+  readAt: string | null;
+  sentAt: string | null;
+  error?: string;
+  createdAt: string;
+};
+
 export type StoredProduct = {
   id: string;
   name: string;
@@ -229,6 +265,8 @@ const fallback = {
   orders: new Map<string, StoredOrder>(),
   deliveries: new Map<string, StoredDelivery>(),
   payments: new Map<string, StoredPayment>(),
+  notifications: new Map<string, StoredNotification>(),
+  notificationPreferences: new Map<string, StoredNotificationPreference>(),
   products: new Map<string, StoredProduct>(),
   plans: fallbackPlans,
 };
@@ -370,6 +408,58 @@ function serializePayment(row: {
     method: row.method,
     externalReference: row.externalReference ?? undefined,
     providerTransactionId: row.providerTransactionId ?? undefined,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+function serializeNotificationPreference(row: {
+  userId: string;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  orderUpdates: boolean;
+  paymentUpdates: boolean;
+  deliveryReminders: boolean;
+  updatedAt: Date;
+}): StoredNotificationPreference {
+  return {
+    userId: row.userId,
+    inAppEnabled: row.inAppEnabled,
+    emailEnabled: row.emailEnabled,
+    smsEnabled: row.smsEnabled,
+    orderUpdates: row.orderUpdates,
+    paymentUpdates: row.paymentUpdates,
+    deliveryReminders: row.deliveryReminders,
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+function serializeNotification(row: {
+  id: string;
+  userId: string;
+  type: string;
+  channel: string;
+  status: string;
+  title: string;
+  body: string;
+  metadata: Prisma.JsonValue;
+  readAt: Date | null;
+  sentAt: Date | null;
+  error: string | null;
+  createdAt: Date;
+}): StoredNotification {
+  return {
+    id: row.id,
+    userId: row.userId,
+    type: row.type as NotificationType,
+    channel: row.channel as NotificationChannel,
+    status: row.status as NotificationStatus,
+    title: row.title,
+    body: row.body,
+    metadata: (row.metadata as Record<string, string>) ?? {},
+    readAt: row.readAt ? row.readAt.toISOString() : null,
+    sentAt: row.sentAt ? row.sentAt.toISOString() : null,
+    error: row.error ?? undefined,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -1707,6 +1797,220 @@ export async function adminUpdateDeliveryStatus(
       if (status === "delivered") delivery.deliveredAt = new Date().toISOString();
       fallback.deliveries.set(delivery.id, delivery);
       return delivery;
+    }
+  );
+}
+
+function defaultNotificationPreference(userId: string): StoredNotificationPreference {
+  return {
+    userId,
+    inAppEnabled: true,
+    emailEnabled: true,
+    smsEnabled: false,
+    orderUpdates: true,
+    paymentUpdates: true,
+    deliveryReminders: true,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export async function getNotificationPreferences(
+  userId: string
+): Promise<StoredNotificationPreference> {
+  return withDbFallback(
+    async () => {
+      const row = await prisma.notificationPreference.upsert({
+        where: { userId },
+        update: {},
+        create: {
+          userId,
+          updatedAt: new Date(),
+        },
+      });
+      return serializeNotificationPreference(row);
+    },
+    () => {
+      const existing = fallback.notificationPreferences.get(userId);
+      if (existing) return existing;
+      const preference = defaultNotificationPreference(userId);
+      fallback.notificationPreferences.set(userId, preference);
+      return preference;
+    }
+  );
+}
+
+export async function updateNotificationPreferences(
+  userId: string,
+  patch: Partial<
+    Pick<
+      StoredNotificationPreference,
+      | "inAppEnabled"
+      | "emailEnabled"
+      | "smsEnabled"
+      | "orderUpdates"
+      | "paymentUpdates"
+      | "deliveryReminders"
+    >
+  >
+): Promise<StoredNotificationPreference> {
+  return withDbFallback(
+    async () => {
+      const row = await prisma.notificationPreference.upsert({
+        where: { userId },
+        update: patch,
+        create: {
+          ...defaultNotificationPreference(userId),
+          ...patch,
+          updatedAt: new Date(),
+        },
+      });
+      return serializeNotificationPreference(row);
+    },
+    () => {
+      const current = fallback.notificationPreferences.get(userId) ?? defaultNotificationPreference(userId);
+      const updated = {
+        ...current,
+        ...patch,
+        updatedAt: new Date().toISOString(),
+      };
+      fallback.notificationPreferences.set(userId, updated);
+      return updated;
+    }
+  );
+}
+
+export async function createNotification(input: {
+  userId: string;
+  type: NotificationType;
+  channel: NotificationChannel;
+  status?: NotificationStatus;
+  title: string;
+  body: string;
+  metadata?: Record<string, string>;
+  error?: string;
+}): Promise<StoredNotification> {
+  const now = new Date();
+  return withDbFallback(
+    async () => {
+      const row = await prisma.notification.create({
+        data: {
+          id: id("ntf"),
+          userId: input.userId,
+          type: input.type,
+          channel: input.channel,
+          status: input.status ?? "sent",
+          title: input.title,
+          body: input.body,
+          metadata: input.metadata ?? {},
+          sentAt: input.status === "failed" || input.status === "skipped" ? null : now,
+          error: input.error,
+        },
+      });
+      return serializeNotification(row);
+    },
+    () => {
+      const notification: StoredNotification = {
+        id: id("ntf"),
+        userId: input.userId,
+        type: input.type,
+        channel: input.channel,
+        status: input.status ?? "sent",
+        title: input.title,
+        body: input.body,
+        metadata: input.metadata ?? {},
+        readAt: null,
+        sentAt: input.status === "failed" || input.status === "skipped" ? null : now.toISOString(),
+        error: input.error,
+        createdAt: now.toISOString(),
+      };
+      fallback.notifications.set(notification.id, notification);
+      return notification;
+    }
+  );
+}
+
+export async function listNotifications(userId: string): Promise<StoredNotification[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.notification.findMany({
+        where: { userId, channel: "in_app" },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      });
+      return rows.map(serializeNotification);
+    },
+    () =>
+      Array.from(fallback.notifications.values())
+        .filter((notification) => notification.userId === userId && notification.channel === "in_app")
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+        .slice(0, 50)
+  );
+}
+
+export async function countUnreadNotifications(userId: string) {
+  return withDbFallback(
+    async () =>
+      prisma.notification.count({
+        where: { userId, channel: "in_app", readAt: null },
+      }),
+    () =>
+      Array.from(fallback.notifications.values()).filter(
+        (notification) =>
+          notification.userId === userId &&
+          notification.channel === "in_app" &&
+          notification.readAt === null
+      ).length
+  );
+}
+
+export async function markNotificationRead(
+  userId: string,
+  notificationId: string
+): Promise<StoredNotification | null> {
+  const now = new Date();
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.notification.findFirst({
+        where: { id: notificationId, userId, channel: "in_app" },
+      });
+      if (!existing) return null;
+      const row = await prisma.notification.update({
+        where: { id: notificationId },
+        data: { readAt: now },
+      });
+      return serializeNotification(row);
+    },
+    () => {
+      const notification = fallback.notifications.get(notificationId);
+      if (!notification || notification.userId !== userId || notification.channel !== "in_app") {
+        return null;
+      }
+      const updated = { ...notification, readAt: now.toISOString() };
+      fallback.notifications.set(notification.id, updated);
+      return updated;
+    }
+  );
+}
+
+export async function markAllNotificationsRead(userId: string) {
+  const now = new Date();
+  return withDbFallback(
+    async () => {
+      const result = await prisma.notification.updateMany({
+        where: { userId, channel: "in_app", readAt: null },
+        data: { readAt: now },
+      });
+      return result.count;
+    },
+    () => {
+      let count = 0;
+      for (const notification of fallback.notifications.values()) {
+        if (notification.userId === userId && notification.channel === "in_app" && !notification.readAt) {
+          fallback.notifications.set(notification.id, { ...notification, readAt: now.toISOString() });
+          count += 1;
+        }
+      }
+      return count;
     }
   );
 }

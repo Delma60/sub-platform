@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json(
-    apiSuccess({ user: { id: user.id, name: user.name, email: user.email } })
+    apiSuccess({ user: { id: user.id, name: user.name, email: user.email, phone: user.phone } })
   );
 }
 
@@ -39,12 +39,15 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  const user = await updateUser(session.sub, parsed.data);
+  const user = await updateUser(session.sub, {
+    ...parsed.data,
+    phone: parsed.data.phone === "" ? null : parsed.data.phone,
+  });
   if (!user) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
   }
 
   return NextResponse.json(
-    apiSuccess({ user: { id: user.id, name: user.name, email: user.email } })
+    apiSuccess({ user: { id: user.id, name: user.name, email: user.email, phone: user.phone } })
   );
 }

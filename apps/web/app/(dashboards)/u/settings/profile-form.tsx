@@ -6,12 +6,15 @@ import { useRouter } from "next/navigation";
 export function ProfileForm({
   initialName,
   email,
+  initialPhone,
 }: {
   initialName: string;
   email: string;
+  initialPhone: string;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -31,7 +34,7 @@ export function ProfileForm({
     [name],
   );
 
-  const dirty = name.trim() !== initialName.trim();
+  const dirty = name.trim() !== initialName.trim() || phone.trim() !== initialPhone.trim();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +46,7 @@ export function ProfileForm({
       const res = await fetch("/api/auth/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, phone }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -105,6 +108,22 @@ export function ProfileForm({
         />
         <p className="text-xs text-[#6B6558]">
           Contact support to change your email.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="phone" className="text-sm font-medium text-[#17251C]">
+          Phone for SMS
+        </label>
+        <input
+          id="phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+2348012345678"
+          className="rounded-2xl border border-[#E4DCC8] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#24402F]"
+        />
+        <p className="text-xs text-[#6B6558]">
+          Required only if SMS notifications are enabled.
         </p>
       </div>
 

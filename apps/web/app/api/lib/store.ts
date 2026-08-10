@@ -5,6 +5,7 @@ export type StoredUser = {
   id: string;
   name: string;
   email: string;
+  phone?: string | null;
   passwordHash: string;
   role: "customer" | "admin" | "rider";
   createdAt: string;
@@ -129,6 +130,7 @@ export async function createUser(user: CreateUserInput) {
       data: {
         name: user.name,
         email: user.email.toLowerCase(),
+        phone: user.phone ?? null,
         passwordHash: user.passwordHash,
         role,
       },
@@ -148,7 +150,7 @@ export async function createUser(user: CreateUserInput) {
 
 export async function updateUser(
   id: string,
-  patch: Partial<Pick<StoredUser, "name" | "email" | "passwordHash" | "role">>
+  patch: Partial<Pick<StoredUser, "name" | "email" | "phone" | "passwordHash" | "role">>
 ) {
   if (!(await isDbAvailable())) {
     const user = await findUserById(id);
@@ -179,6 +181,7 @@ export async function updateUser(
       data: {
         name: patch.name ?? user.name,
         email: patch.email ? patch.email.toLowerCase() : user.email,
+        phone: patch.phone === undefined ? user.phone ?? null : patch.phone,
         passwordHash: patch.passwordHash ?? user.passwordHash,
         role: patch.role ?? user.role,
       },

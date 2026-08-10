@@ -42,6 +42,7 @@ const NAV_GROUPS: { label: string | null; items: NavItem[] }[] = [
       { href: "/u/subscription", label: "Subscription", icon: BoxIcon },
       { href: "/u/orders", label: "Orders", icon: OrdersIcon },
       { href: "/u/deliveries", label: "Deliveries", icon: TruckIcon },
+      { href: "/u/notifications", label: "Notifications", icon: GearIcon },
       { href: "/u/addresses", label: "Addresses", icon: PinIcon },
       {
         href: "/u/payments",

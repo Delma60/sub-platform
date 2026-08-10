@@ -81,6 +81,21 @@ export const productSchema = z.object({
 
 export const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9]{7,15}$/, "Use an international phone number")
+    .optional()
+    .or(z.literal("")),
+});
+
+export const notificationPreferenceSchema = z.object({
+  inAppEnabled: z.boolean().optional(),
+  emailEnabled: z.boolean().optional(),
+  smsEnabled: z.boolean().optional(),
+  orderUpdates: z.boolean().optional(),
+  paymentUpdates: z.boolean().optional(),
+  deliveryReminders: z.boolean().optional(),
 });
 
 export const changePasswordSchema = z.object({

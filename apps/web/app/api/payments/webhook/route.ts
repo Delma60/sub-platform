@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { finalizePaymentByReference } from "../../lib/data-store";
 import { verifyFlutterwaveWebhook } from "../../lib/flutterwave";
+import { notifyPaymentUpdated } from "../../lib/notifications";
 
 export async function POST(request: NextRequest) {
   if (!verifyFlutterwaveWebhook(request.headers.get("verif-hash"))) {
@@ -23,6 +24,10 @@ export async function POST(request: NextRequest) {
   if (!result) {
     return NextResponse.json(apiError("Payment reference not found", 404), { status: 404 });
   }
+
+  await notifyPaymentUpdated(result.payment).catch((error) => {
+    console.error("Payment notification failed:", error);
+  });
 
   return NextResponse.json(apiSuccess(result));
 }
