@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next") ?? "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,8 +31,11 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      const isAdmin = json?.data?.user?.role === "admin";
+      const destination =
+        nextPath === "/admin" && !isAdmin ? "/dashboard" : nextPath;
+
+      await router.push(destination);
     } catch {
       setError(
         "Couldn't reach the server. Check your connection and try again.",
