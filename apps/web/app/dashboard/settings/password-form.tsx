@@ -133,7 +133,7 @@ export function PasswordForm() {
           }`}
         />
         {mismatch && (
-          <p className="text-xs text-[#B3261E]">Passwords don't match.</p>
+          <p className="text-xs text-[#B3261E]">Passwords don&apos;t match.</p>
         )}
       </div>
 

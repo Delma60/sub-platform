@@ -310,6 +310,7 @@ export function ProductsManager({
                     <div className="flex items-start gap-3">
                       <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#EDF0E7] text-[#24402F]">
                         {product.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={product.imageUrl}
                             alt=""

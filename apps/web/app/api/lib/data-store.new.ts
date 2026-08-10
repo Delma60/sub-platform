@@ -823,14 +823,16 @@ export async function resetBoxItem(
       const existing = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
       if (!existing) return null;
       const sub = serializeSubscription(existing);
-      const { [itemId]: _removed, ...rest } = sub.itemSwaps;
+      const rest = { ...sub.itemSwaps };
+      delete rest[itemId];
       const row = await prisma.subscription.update({ where: { id: subscriptionId }, data: { itemSwaps: rest } });
       return serializeSubscription(row);
     },
     () => {
       const sub = fallback.subscriptions.get(subscriptionId);
       if (!sub || sub.userId !== userId) return null;
-      const { [itemId]: _removed, ...rest } = sub.itemSwaps;
+      const rest = { ...sub.itemSwaps };
+      delete rest[itemId];
       sub.itemSwaps = rest;
       sub.updatedAt = new Date().toISOString();
       fallback.subscriptions.set(sub.id, sub);

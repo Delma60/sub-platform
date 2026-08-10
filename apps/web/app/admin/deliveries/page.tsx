@@ -81,7 +81,7 @@ export default async function AdminDeliveriesPage() {
           Deliveries
         </h1>
         <p className="mt-1 max-w-md text-[15px] text-[#6B6558]">
-          Track today's route, move deliveries through their stages, and flag
+          Track today&apos;s route, move deliveries through their stages, and flag
           issues that need follow-up.
         </p>
       </div>

@@ -49,7 +49,7 @@ export default function HomePage() {
 
           <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-8">
             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--ink-soft)]">
-              This week's box
+              This week&apos;s box
             </p>
             <p className="mt-2 text-lg font-semibold text-[var(--ink)]">
               Family plan · 15 items
@@ -132,7 +132,7 @@ export default function HomePage() {
               Contents
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.015em] sm:text-4xl">
-              What's in the box
+              What&apos;s in the box
             </h2>
             <p className="mt-4 text-[var(--ink-soft)]">
               Every plan is built around these categories. Once you subscribe,
@@ -326,7 +326,7 @@ export default function HomePage() {
                 className="border-t border-[var(--line)] pt-6"
               >
                 <blockquote className="text-[16px] leading-relaxed text-[var(--ink-soft)]">
-                  "{t.quote}"
+                  &quot;{t.quote}&quot;
                 </blockquote>
                 <figcaption className="mt-5 text-sm text-[var(--ink-soft)]">
                   {t.name} — {t.loc}
@@ -375,7 +375,7 @@ export default function HomePage() {
                 Plans
               </a>
               <a href="#whats-inside" className="hover:text-[var(--ink)]">
-                What's inside
+                What&apos;s inside
               </a>
             </div>
             <div className="flex flex-col gap-2.5">

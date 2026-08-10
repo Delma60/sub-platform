@@ -44,7 +44,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#E4DCC8] py-14 text-center">
           <p className="text-sm font-medium text-[#17251C]">No orders yet</p>
           <p className="max-w-xs text-sm text-[#6B6558]">
-            Orders are generated automatically from your subscription once it's
+            Orders are generated automatically from your subscription once it&apos;s
             active.
           </p>
           <Link

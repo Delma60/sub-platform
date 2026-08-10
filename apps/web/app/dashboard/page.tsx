@@ -41,7 +41,8 @@ export default async function DashboardOverviewPage() {
   let daysUntil: number | null = null;
   if (subscription && plan && nextDelivery) {
     const totalDays = cycleDaysForFrequency(plan.frequency);
-    const msLeft = new Date(nextDelivery.scheduledDate).getTime() - Date.now();
+    const nowMs = new Date().getTime();
+    const msLeft = new Date(nextDelivery.scheduledDate).getTime() - nowMs;
     const rawDaysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
     daysUntil = Math.max(0, rawDaysLeft);
     const elapsed = Math.min(totalDays, Math.max(0, totalDays - daysUntil));
@@ -118,7 +119,7 @@ export default async function DashboardOverviewPage() {
                 No active plan
               </p>
               <p className="mt-2 text-sm text-[#6B6558]">
-                You haven't subscribed to a box yet.
+                You haven&apos;t subscribed to a box yet.
               </p>
             </>
           )}
@@ -172,7 +173,7 @@ export default async function DashboardOverviewPage() {
                 Nothing scheduled
               </p>
               <p className="mt-2 text-sm text-[#6B6558]">
-                Your next delivery date will show up here once you're
+                Your next delivery date will show up here once you&apos;re
                 subscribed.
               </p>
             </>
@@ -226,7 +227,7 @@ export default async function DashboardOverviewPage() {
             <p className="text-sm font-medium text-[#17251C]">No orders yet</p>
             <p className="max-w-xs text-sm text-[#6B6558]">
               Orders are generated automatically from your subscription once
-              it's active.
+              it&apos;s active.
             </p>
           </div>
         ) : (

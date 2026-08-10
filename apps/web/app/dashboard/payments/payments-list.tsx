@@ -143,7 +143,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
       {payment.status === "failed" && (
         <div className="ml-12 flex items-center justify-between gap-3 rounded-md border border-[#F3D4CF] bg-[#FBEAE7] px-3.5 py-2.5">
           <p className="text-xs text-[#8A3B34]">
-            This charge didn't go through. Your subscription is unaffected until
+            This charge didn&apos;t go through. Your subscription is unaffected until
             you retry.
           </p>
           <Link
