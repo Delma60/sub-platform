@@ -2,6 +2,7 @@
 CREATE TYPE "PlanFrequency" AS ENUM ('weekly', 'biweekly', 'monthly');
 
 -- CreateTable
+
 CREATE TABLE "Plan" (
     "id" "PlanId" NOT NULL,
     "name" TEXT NOT NULL,

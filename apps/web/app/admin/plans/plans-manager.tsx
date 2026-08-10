@@ -104,7 +104,9 @@ export function PlansManager({ initialPlans }: { initialPlans: Plan[] }) {
       setPlans((prev) => prev.map((p) => (p.id === saved.id ? saved : p)));
       closePanel();
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -129,7 +131,9 @@ export function PlansManager({ initialPlans }: { initialPlans: Plan[] }) {
                   <ClipboardList className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-medium text-[#17251C]">{plan.name}</p>
+                  <p className="text-sm font-medium text-[#17251C]">
+                    {plan.name}
+                  </p>
                   <p className="mt-1.5 text-sm leading-relaxed text-[#6B6558]">
                     ₦{plan.price.toLocaleString()} / {plan.frequency}
                   </p>
@@ -163,7 +167,9 @@ export function PlansManager({ initialPlans }: { initialPlans: Plan[] }) {
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-[#BC8A31]">Edit</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-[#BC8A31]">
+                  Edit
+                </p>
                 <h2 className="mt-1 font-display text-xl text-[#17251C]">
                   {plans.find((p) => p.id === selectedId)?.name}
                 </h2>
@@ -202,7 +208,12 @@ export function PlansManager({ initialPlans }: { initialPlans: Plan[] }) {
               <Field label="Frequency">
                 <select
                   value={form.frequency}
-                  onChange={(e) => setForm({ ...form, frequency: e.target.value as Plan["frequency"] })}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      frequency: e.target.value as Plan["frequency"],
+                    })
+                  }
                   className="rounded-xl border border-[#E4DCC8] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#24402F]"
                 >
                   {FREQUENCIES.map((f) => (
@@ -215,7 +226,9 @@ export function PlansManager({ initialPlans }: { initialPlans: Plan[] }) {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#17251C]">Features</label>
+              <label className="text-sm font-medium text-[#17251C]">
+                Features
+              </label>
               {form.features.map((feature, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <input
@@ -272,7 +285,9 @@ export function PlansManager({ initialPlans }: { initialPlans: Plan[] }) {
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EDF0E7] text-[#24402F]">
               <ClipboardList className="h-5 w-5" />
             </div>
-            <p className="mt-1 text-sm font-medium text-[#17251C]">Nothing selected</p>
+            <p className="mt-1 text-sm font-medium text-[#17251C]">
+              Nothing selected
+            </p>
             <p className="max-w-[220px] text-sm text-[#6B6558]">
               Choose a plan to edit its price, frequency, or features.
             </p>
@@ -283,7 +298,13 @@ export function PlansManager({ initialPlans }: { initialPlans: Plan[] }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-sm font-medium text-[#17251C]">{label}</label>
