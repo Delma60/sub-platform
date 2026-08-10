@@ -4,7 +4,9 @@ export default function AdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs uppercase tracking-[0.26em] text-[#BC8A31]">Admin</p>
+        <p className="text-xs uppercase tracking-[0.26em] text-[#BC8A31]">
+          Admin
+        </p>
         <h1 className="mt-2 font-display text-3xl text-[#17251C]">Overview</h1>
         <p className="mt-1 max-w-md text-[15px] text-[#6B6558]">
           Manage subscriptions, orders, inventory, and customer operations.

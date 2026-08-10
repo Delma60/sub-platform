@@ -16,12 +16,19 @@ import {
 } from "./icons";
 import { LucideIcon } from "lucide-react";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; exact?: boolean };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+};
 
 const NAV_GROUPS: { label: string | null; items: NavItem[] }[] = [
   {
     label: null,
-    items: [{ href: "/admin", label: "Overview", icon: OverviewIcon, exact: true }],
+    items: [
+      { href: "/admin", label: "Overview", icon: OverviewIcon, exact: true },
+    ],
   },
   {
     label: "Catalog",
@@ -33,14 +40,22 @@ const NAV_GROUPS: { label: string | null; items: NavItem[] }[] = [
   {
     label: "Operations",
     items: [
-      { href: "/admin/subscriptions", label: "Subscriptions", icon: SubscriptionsIcon },
+      {
+        href: "/admin/subscriptions",
+        label: "Subscriptions",
+        icon: SubscriptionsIcon,
+      },
       { href: "/admin/deliveries", label: "Deliveries", icon: DeliveriesIcon },
       { href: "/admin/payments", label: "Payments", icon: PaymentsIcon },
     ],
   },
 ];
 
-export function AdminSidebar({ admin }: { admin: { name: string; email: string } }) {
+export function AdminSidebar({
+  admin,
+}: {
+  admin: { name: string; email: string };
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -53,12 +68,17 @@ export function AdminSidebar({ admin }: { admin: { name: string; email: string }
     .toUpperCase();
 
   const isActive = (href: string, exact?: boolean) =>
-    exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+    exact
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <>
       <div className="flex items-center justify-between border-b border-[#2A2A26] bg-[#17251C] px-4 py-3 md:hidden">
-        <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold text-white">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2 text-lg font-semibold text-white"
+        >
           Oja
           <span className="rounded-full bg-[#BC8A31]/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#D4A94E]">
             Admin
@@ -85,9 +105,14 @@ export function AdminSidebar({ admin }: { admin: { name: string; email: string }
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${collapsed ? "md:w-[76px]" : "w-64 md:w-64"}`}
       >
-        <div className={`flex items-center justify-between ${collapsed ? "px-3" : "px-5"}`}>
+        <div
+          className={`flex items-center justify-between ${collapsed ? "px-3" : "px-5"}`}
+        >
           {!collapsed && (
-            <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold text-white">
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 text-lg font-semibold text-white"
+            >
               Oja
               <span className="rounded-full bg-[#BC8A31]/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#D4A94E]">
                 Admin
@@ -106,7 +131,9 @@ export function AdminSidebar({ admin }: { admin: { name: string; email: string }
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             className="hidden h-7 w-7 items-center justify-center rounded-md text-white/50 transition hover:bg-white/5 hover:text-white md:flex"
           >
-            <ChevronIcon className={`transition-transform ${collapsed ? "rotate-180" : ""}`} />
+            <ChevronIcon
+              className={`transition-transform ${collapsed ? "rotate-180" : ""}`}
+            />
           </button>
         </div>
 
@@ -172,8 +199,12 @@ export function AdminSidebar({ admin }: { admin: { name: string; email: string }
           {!collapsed && (
             <>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-white">{admin.name}</p>
-                <p className="truncate text-[12px] text-white/50">{admin.email}</p>
+                <p className="truncate text-[13px] font-medium text-white">
+                  {admin.name}
+                </p>
+                <p className="truncate text-[12px] text-white/50">
+                  {admin.email}
+                </p>
               </div>
               <form action="/api/auth/logout" method="POST">
                 <button
