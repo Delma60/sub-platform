@@ -934,6 +934,53 @@ export async function changeSubscriptionPlan(
   );
 }
 
+export async function adminUpdateSubscriptionStatus(
+  subscriptionId: string,
+  status: SubscriptionStatus
+): Promise<StoredSubscription | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.subscription.findUnique({ where: { id: subscriptionId } });
+      if (!existing) return null;
+      const row = await prisma.subscription.update({ where: { id: subscriptionId }, data: { status } });
+      return serializeSubscription(row);
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      if (!sub) return null;
+      sub.status = status;
+      sub.updatedAt = new Date().toISOString();
+      fallback.subscriptions.set(sub.id, sub);
+      return sub;
+    }
+  );
+}
+
+export async function adminChangeSubscriptionPlan(
+  subscriptionId: string,
+  planId: PlanId
+): Promise<StoredSubscription | null> {
+  const plan = await getPlan(planId);
+  if (!plan) return null;
+
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.subscription.findUnique({ where: { id: subscriptionId } });
+      if (!existing) return null;
+      const row = await prisma.subscription.update({ where: { id: subscriptionId }, data: { planId } });
+      return serializeSubscription(row);
+    },
+    () => {
+      const sub = fallback.subscriptions.get(subscriptionId);
+      if (!sub) return null;
+      sub.planId = planId;
+      sub.updatedAt = new Date().toISOString();
+      fallback.subscriptions.set(sub.id, sub);
+      return sub;
+    }
+  );
+}
+
 export async function setDeliveryDay(
   userId: string,
   subscriptionId: string,
@@ -1278,6 +1325,27 @@ export async function listAllOrders(): Promise<StoredOrder[]> {
   );
 }
 
+export async function adminUpdateOrderStatus(
+  orderId: string,
+  status: OrderStatus
+): Promise<StoredOrder | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.order.findUnique({ where: { id: orderId } });
+      if (!existing) return null;
+      const row = await prisma.order.update({ where: { id: orderId }, data: { status } });
+      return serializeOrder(row);
+    },
+    () => {
+      const order = fallback.orders.get(orderId);
+      if (!order) return null;
+      order.status = status;
+      fallback.orders.set(order.id, order);
+      return order;
+    }
+  );
+}
+
 export async function listAllPayments(): Promise<StoredPayment[]> {
   return withDbFallback(
     async () => {
@@ -1301,5 +1369,43 @@ export async function listAllDeliveries(): Promise<StoredDelivery[]> {
       Array.from(fallback.deliveries.values()).sort((a, b) =>
         a.scheduledDate < b.scheduledDate ? 1 : -1
       )
+  );
+}
+
+export async function listAllAddresses(): Promise<StoredAddress[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.address.findMany();
+      return rows.map(serializeAddress);
+    },
+    () => Array.from(fallback.addresses.values())
+  );
+}
+
+export async function adminUpdateDeliveryStatus(
+  deliveryId: string,
+  status: DeliveryStatus
+): Promise<StoredDelivery | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.delivery.findUnique({ where: { id: deliveryId } });
+      if (!existing) return null;
+      const row = await prisma.delivery.update({
+        where: { id: deliveryId },
+        data: {
+          status,
+          deliveredAt: status === "delivered" ? new Date() : existing.deliveredAt,
+        },
+      });
+      return serializeDelivery(row);
+    },
+    () => {
+      const delivery = fallback.deliveries.get(deliveryId);
+      if (!delivery) return null;
+      delivery.status = status;
+      if (status === "delivered") delivery.deliveredAt = new Date().toISOString();
+      fallback.deliveries.set(delivery.id, delivery);
+      return delivery;
+    }
   );
 }

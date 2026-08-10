@@ -21,6 +21,14 @@ export const subscriptionActionSchema = z.object({
   dayOfWeek: z.number().int().min(0).max(6).optional(),
 });
 
+export const adminDeliveryUpdateSchema = z.object({
+  status: z.enum(["scheduled", "out_for_delivery", "delivered", "issue", "skipped"]),
+});
+
+export const adminOrderUpdateSchema = z.object({
+  status: z.enum(["processing", "packed", "out_for_delivery", "delivered"]),
+});
+
 export const planUpdateSchema = z.object({
   name: z.string().min(2).optional(),
   price: z.number().int().nonnegative().optional(),
