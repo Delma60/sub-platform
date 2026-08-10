@@ -95,7 +95,11 @@ export function CustomerNavbarClient({ user }: { user: User | null }) {
           aria-expanded={mobileOpen}
           className="flex h-9 w-9 items-center justify-center text-[var(--ink)] md:hidden"
         >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {mobileOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
         </button>
       </div>
 
