@@ -28,6 +28,7 @@ enum SubscriptionStatus {
   active
   paused
   cancelled
+  payment_failed
 }
 
 enum OrderStatus {
@@ -63,6 +64,7 @@ model User {
   orders        Order[]
   deliveries    Delivery[]
   payments      Payment[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Address {
@@ -139,12 +141,28 @@ model Payment {
   amount    Int
   status    PaymentStatus @default(pending)
   method    String
+  externalReference String? @unique
+  providerTransactionId String?
   createdAt DateTime      @default(now())
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([userId])
   @@index([orderId])
+  @@index([externalReference])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Product {

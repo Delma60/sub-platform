@@ -22,13 +22,16 @@ export default async function AdminOrdersPage() {
   const now = new Date();
   const ordersThisMonth = enriched.filter((o) => {
     const d = new Date(o.createdAt);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return (
+      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    );
   }).length;
 
   const counts = {
     processing: enriched.filter((o) => o.status === "processing").length,
     packed: enriched.filter((o) => o.status === "packed").length,
-    outForDelivery: enriched.filter((o) => o.status === "out_for_delivery").length,
+    outForDelivery: enriched.filter((o) => o.status === "out_for_delivery")
+      .length,
     delivered: enriched.filter((o) => o.status === "delivered").length,
   };
 
@@ -40,8 +43,8 @@ export default async function AdminOrdersPage() {
         </p>
         <h1 className="mt-2 font-display text-3xl text-[#17251C]">Orders</h1>
         <p className="mt-1 max-w-md text-[15px] text-[#6B6558]">
-          Track every order generated from customer subscriptions and move
-          them through fulfillment.
+          Track every order generated from customer subscriptions and move them
+          through fulfillment.
         </p>
       </div>
 
@@ -49,7 +52,10 @@ export default async function AdminOrdersPage() {
         <StatCard label="This month" value={String(ordersThisMonth)} />
         <StatCard label="Processing" value={String(counts.processing)} />
         <StatCard label="Packed" value={String(counts.packed)} />
-        <StatCard label="Out for delivery" value={String(counts.outForDelivery)} />
+        <StatCard
+          label="Out for delivery"
+          value={String(counts.outForDelivery)}
+        />
       </div>
 
       <OrdersManager initialOrders={enriched} />

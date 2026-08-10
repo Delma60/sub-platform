@@ -3,7 +3,12 @@
 import { useMemo, useState } from "react";
 import { DeliveryStatusPill } from "../../dashboard/deliveries/delivery-status-pill";
 
-type DeliveryStatus = "scheduled" | "out_for_delivery" | "delivered" | "issue" | "skipped";
+type DeliveryStatus =
+  | "scheduled"
+  | "out_for_delivery"
+  | "delivered"
+  | "issue"
+  | "skipped";
 
 type Row = {
   id: string;
@@ -25,7 +30,11 @@ const FILTERS: { key: DeliveryStatus | "all"; label: string }[] = [
   { key: "delivered", label: "Delivered" },
 ];
 
-export function DeliveriesManager({ initialDeliveries }: { initialDeliveries: Row[] }) {
+export function DeliveriesManager({
+  initialDeliveries,
+}: {
+  initialDeliveries: Row[];
+}) {
   const [rows, setRows] = useState<Row[]>(initialDeliveries);
   const [filter, setFilter] = useState<DeliveryStatus | "all">("all");
   const [query, setQuery] = useState("");
@@ -64,12 +73,18 @@ export function DeliveriesManager({ initialDeliveries }: { initialDeliveries: Ro
       setRows((prev) =>
         prev.map((row) =>
           row.id === deliveryId
-            ? { ...row, status: updated.status, deliveredAt: updated.deliveredAt }
+            ? {
+                ...row,
+                status: updated.status,
+                deliveredAt: updated.deliveredAt,
+              }
             : row,
         ),
       );
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -79,9 +94,12 @@ export function DeliveriesManager({ initialDeliveries }: { initialDeliveries: Ro
     return (
       <div className="rounded-3xl border border-[#E4DCC8] bg-white p-6">
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#E4DCC8] py-14 text-center">
-          <p className="text-sm font-medium text-[#17251C]">No deliveries yet</p>
+          <p className="text-sm font-medium text-[#17251C]">
+            No deliveries yet
+          </p>
           <p className="max-w-xs text-sm text-[#6B6558]">
-            Deliveries appear here once orders start generating from customer subscriptions.
+            Deliveries appear here once orders start generating from customer
+            subscriptions.
           </p>
         </div>
       </div>
@@ -128,7 +146,9 @@ export function DeliveriesManager({ initialDeliveries }: { initialDeliveries: Ro
       {filtered.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-1 rounded-2xl border border-dashed border-[#E4DCC8] py-10 text-center">
           <p className="text-sm font-medium text-[#17251C]">No matches</p>
-          <p className="text-sm text-[#6B6558]">Try a different filter or search term.</p>
+          <p className="text-sm text-[#6B6558]">
+            Try a different filter or search term.
+          </p>
         </div>
       ) : (
         <div className="mt-6 flex flex-col divide-y divide-[#E4DCC8]">
@@ -177,7 +197,9 @@ export function DeliveriesManager({ initialDeliveries }: { initialDeliveries: Ro
                         <>
                           <button
                             type="button"
-                            onClick={() => runAction(row.id, "out_for_delivery")}
+                            onClick={() =>
+                              runAction(row.id, "out_for_delivery")
+                            }
                             disabled={isBusy}
                             className="rounded-full bg-[#24402F] px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-[#1a2f22] disabled:opacity-60"
                           >
@@ -236,10 +258,13 @@ export function DeliveriesManager({ initialDeliveries }: { initialDeliveries: Ro
                         </>
                       )}
 
-                      {(row.status === "delivered" || row.status === "skipped") && (
+                      {(row.status === "delivered" ||
+                        row.status === "skipped") && (
                         <span className="text-xs text-[#6B6558]">
                           {row.status === "delivered" && row.deliveredAt
-                            ? `Delivered ${new Date(row.deliveredAt).toLocaleDateString("en-NG", {
+                            ? `Delivered ${new Date(
+                                row.deliveredAt,
+                              ).toLocaleDateString("en-NG", {
                                 month: "short",
                                 day: "numeric",
                               })}`

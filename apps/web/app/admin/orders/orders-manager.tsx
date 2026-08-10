@@ -16,7 +16,12 @@ type Row = {
   customerEmail: string;
 };
 
-const STEPS: OrderStatus[] = ["processing", "packed", "out_for_delivery", "delivered"];
+const STEPS: OrderStatus[] = [
+  "processing",
+  "packed",
+  "out_for_delivery",
+  "delivered",
+];
 
 const FILTERS: { key: OrderStatus | "all"; label: string }[] = [
   { key: "all", label: "All" },
@@ -81,10 +86,14 @@ export function OrdersManager({ initialOrders }: { initialOrders: Row[] }) {
       }
       const updated = json.data.order;
       setRows((prev) =>
-        prev.map((row) => (row.id === orderId ? { ...row, status: updated.status } : row)),
+        prev.map((row) =>
+          row.id === orderId ? { ...row, status: updated.status } : row,
+        ),
       );
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -144,7 +153,9 @@ export function OrdersManager({ initialOrders }: { initialOrders: Row[] }) {
       {filtered.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-1 rounded-2xl border border-dashed border-[#E4DCC8] py-10 text-center">
           <p className="text-sm font-medium text-[#17251C]">No matches</p>
-          <p className="text-sm text-[#6B6558]">Try a different filter or search term.</p>
+          <p className="text-sm text-[#6B6558]">
+            Try a different filter or search term.
+          </p>
         </div>
       ) : (
         <div className="mt-6 flex flex-col divide-y divide-[#E4DCC8]">
@@ -203,7 +214,9 @@ export function OrdersManager({ initialOrders }: { initialOrders: Row[] }) {
                           disabled={isBusy}
                           className="rounded-full border border-[#E4DCC8] px-3.5 py-1.5 text-xs font-medium text-[#17251C] transition hover:bg-white disabled:opacity-60"
                         >
-                          {isBusy ? "Updating…" : `Back to ${STEP_LABELS[prev]}`}
+                          {isBusy
+                            ? "Updating…"
+                            : `Back to ${STEP_LABELS[prev]}`}
                         </button>
                       )}
                       {next && (
@@ -213,7 +226,9 @@ export function OrdersManager({ initialOrders }: { initialOrders: Row[] }) {
                           disabled={isBusy}
                           className="rounded-full bg-[#24402F] px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-[#1a2f22] disabled:opacity-60"
                         >
-                          {isBusy ? "Updating…" : `Advance to ${STEP_LABELS[next]}`}
+                          {isBusy
+                            ? "Updating…"
+                            : `Advance to ${STEP_LABELS[next]}`}
                         </button>
                       )}
                       {!next && (

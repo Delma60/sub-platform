@@ -64,7 +64,9 @@ export function SubscriptionsManager({
       const res = await fetch(`/api/admin/subscriptions/${subscriptionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(planId ? { action: "change_plan", planId } : { action }),
+        body: JSON.stringify(
+          planId ? { action: "change_plan", planId } : { action },
+        ),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -80,14 +82,18 @@ export function SubscriptionsManager({
                 ...row,
                 status: updated.status,
                 planId: updated.planId,
-                planName: plans.find((p) => p.id === updated.planId)?.name ?? row.planName,
+                planName:
+                  plans.find((p) => p.id === updated.planId)?.name ??
+                  row.planName,
                 nextDeliveryDate: updated.nextDeliveryDate,
               }
             : row,
         ),
       );
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(
+        "Couldn't reach the server. Check your connection and try again.",
+      );
     } finally {
       setBusyId(null);
       setConfirmingCancel(null);
@@ -98,7 +104,9 @@ export function SubscriptionsManager({
     return (
       <div className="rounded-3xl border border-[#E4DCC8] bg-white p-6">
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[#E4DCC8] py-14 text-center">
-          <p className="text-sm font-medium text-[#17251C]">No subscriptions yet</p>
+          <p className="text-sm font-medium text-[#17251C]">
+            No subscriptions yet
+          </p>
           <p className="max-w-xs text-sm text-[#6B6558]">
             Subscriptions will show up here once customers start subscribing.
           </p>
@@ -180,11 +188,14 @@ export function SubscriptionsManager({
                       {row.planFrequency}
                     </span>
                     <span className="text-xs text-[#6B6558]">
-                      Next {" "}
-                      {new Date(row.nextDeliveryDate).toLocaleDateString("en-NG", {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      Next{" "}
+                      {new Date(row.nextDeliveryDate).toLocaleDateString(
+                        "en-NG",
+                        {
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
                     </span>
                     <StatusBadge status={row.status} />
                   </div>
@@ -200,7 +211,11 @@ export function SubscriptionsManager({
                         value={row.planId}
                         disabled={isBusy || row.status === "cancelled"}
                         onChange={(e) =>
-                          runAction(row.id, "change_plan", e.target.value as PlanId)
+                          runAction(
+                            row.id,
+                            "change_plan",
+                            e.target.value as PlanId,
+                          )
                         }
                         className="rounded-full border border-[#E4DCC8] bg-white px-3 py-1.5 text-xs font-medium text-[#17251C] outline-none transition focus:border-[#24402F] disabled:opacity-60"
                       >
@@ -237,7 +252,9 @@ export function SubscriptionsManager({
                       {row.status !== "cancelled" &&
                         (isConfirmingCancel ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-[#6B6558]">Cancel this?</span>
+                            <span className="text-xs text-[#6B6558]">
+                              Cancel this?
+                            </span>
                             <button
                               type="button"
                               onClick={() => runAction(row.id, "cancel")}

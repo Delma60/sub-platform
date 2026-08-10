@@ -1,7 +1,4 @@
-import {
-  listAllSubscriptions,
-  listPlans,
-} from "../../api/lib/data-store";
+import { listAllSubscriptions, listPlans } from "../../api/lib/data-store";
 import { listUsersByIds } from "../../api/lib/store";
 import { SubscriptionsManager } from "./subscriptions-manager";
 
@@ -47,8 +44,8 @@ export default async function AdminSubscriptionsPage() {
           Subscriptions
         </h1>
         <p className="mt-1 max-w-md text-[15px] text-[#6B6558]">
-          Review every customer's subscription, switch their plan, or pause
-          and cancel on their behalf.
+          Review every customer's subscription, switch their plan, or pause and
+          cancel on their behalf.
         </p>
       </div>
 

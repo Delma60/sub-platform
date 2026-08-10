@@ -24,7 +24,9 @@ export default async function AdminDeliveriesPage() {
     const user = usersById.get(delivery.userId);
     const order = orderMap.get(delivery.orderId);
     const plan = order ? planMap.get(order.planId) : null;
-    const address = delivery.addressId ? addressMap.get(delivery.addressId) : null;
+    const address = delivery.addressId
+      ? addressMap.get(delivery.addressId)
+      : null;
 
     return {
       id: delivery.id,
@@ -58,9 +60,13 @@ export default async function AdminDeliveriesPage() {
 
   const counts = {
     today: enriched.filter(
-      (d) => isToday(d.scheduledDate) && d.status !== "delivered" && d.status !== "skipped",
+      (d) =>
+        isToday(d.scheduledDate) &&
+        d.status !== "delivered" &&
+        d.status !== "skipped",
     ).length,
-    outForDelivery: enriched.filter((d) => d.status === "out_for_delivery").length,
+    outForDelivery: enriched.filter((d) => d.status === "out_for_delivery")
+      .length,
     issues: enriched.filter((d) => d.status === "issue").length,
     delivered: enriched.filter((d) => d.status === "delivered").length,
   };
@@ -82,7 +88,10 @@ export default async function AdminDeliveriesPage() {
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Due today" value={String(counts.today)} />
-        <StatCard label="Out for delivery" value={String(counts.outForDelivery)} />
+        <StatCard
+          label="Out for delivery"
+          value={String(counts.outForDelivery)}
+        />
         <StatCard
           label="Issues"
           value={String(counts.issues)}
