@@ -193,3 +193,45 @@ export async function updateUser(
     return updated;
   });
 }
+
+export async function listUsersByIds(ids: string[]) {
+  const normalizedIds = Array.from(new Set(ids));
+
+  if (!(await isDbAvailable())) {
+    const matchingUsers = Array.from(users.values()).filter((user) =>
+      normalizedIds.includes(user.id)
+    );
+    return new Map(matchingUsers.map((user) => [user.id, user]));
+  }
+
+  return await withDbFallback(async () => {
+    const foundUsers = await prisma.user.findMany({
+      where: { id: { in: normalizedIds } },
+    });
+    return new Map(foundUsers.map((user) => [user.id, normalizeStoredUser(user)]));
+  }, async () => {
+    const matchingUsers = Array.from(users.values()).filter((user) =>
+      normalizedIds.includes(user.id)
+    );
+    return new Map(matchingUsers.map((user) => [user.id, user]));
+  });
+}
+
+export async function countUsers(role?: StoredUser["role"]) {
+  if (!(await isDbAvailable())) {
+    return Array.from(users.values()).filter((user) =>
+      role ? user.role === role : true
+    ).length;
+  }
+
+  return await withDbFallback(async () => {
+    if (role) {
+      return prisma.user.count({ where: { role } });
+    }
+    return prisma.user.count();
+  }, async () =>
+    Array.from(users.values()).filter((user) =>
+      role ? user.role === role : true
+    ).length
+  );
+}

@@ -37,8 +37,8 @@ export default function LoginPage() {
           ? "/dashboard"
           : requestedNext
         : isAdmin
-        ? "/admin"
-        : "/dashboard";
+          ? "/admin"
+          : "/dashboard";
 
       await router.push(destination);
     } catch {

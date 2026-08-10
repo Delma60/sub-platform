@@ -113,6 +113,31 @@ export type StoredPayment = {
   createdAt: string;
 };
 
+export type StoredProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  description?: string;
+  price: number;
+  unit?: string;
+  imageUrl?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateProductInput = {
+  name: string;
+  slug?: string;
+  category: string;
+  description?: string;
+  price: number;
+  unit?: string;
+  imageUrl?: string;
+  active?: boolean;
+};
+
 export type BoxItem = { id: string; name: string; category: string };
 
 export const CATALOG_ITEMS: BoxItem[] = [
@@ -196,6 +221,7 @@ const fallback = {
   orders: new Map<string, StoredOrder>(),
   deliveries: new Map<string, StoredDelivery>(),
   payments: new Map<string, StoredPayment>(),
+  products: new Map<string, StoredProduct>(),
 };
 
 function id(prefix: string) {
@@ -210,6 +236,14 @@ function addDays(date: Date, days: number) {
 
 function cycleDaysForPlan(plan: Plan) {
   return plan.frequency === "weekly" ? 7 : plan.frequency === "biweekly" ? 14 : 30;
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 function nextOccurrenceOfWeekday(from: Date, dayOfWeek: number) {
@@ -325,6 +359,156 @@ function serializePayment(row: {
     method: row.method,
     createdAt: row.createdAt.toISOString(),
   };
+}
+
+function serializeProduct(row: {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  description: string | null;
+  price: number;
+  unit: string | null;
+  imageUrl: string | null;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}): StoredProduct {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    category: row.category,
+    description: row.description ?? undefined,
+    price: row.price,
+    unit: row.unit ?? undefined,
+    imageUrl: row.imageUrl ?? undefined,
+    active: row.active,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export async function listProducts(options?: {
+  activeOnly?: boolean;
+}): Promise<StoredProduct[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.product.findMany({
+        where: options?.activeOnly ? { active: true } : undefined,
+        orderBy: { createdAt: "desc" },
+      });
+      return rows.map(serializeProduct);
+    },
+    () => {
+      const products = Array.from(fallback.products.values());
+      const filtered = options?.activeOnly ? products.filter((product) => product.active) : products;
+      return filtered.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    }
+  );
+}
+
+export async function createProduct(input: CreateProductInput): Promise<StoredProduct> {
+  const slug = input.slug ? input.slug : slugify(input.name);
+  return withDbFallback(
+    async () => {
+      const row = await prisma.product.create({
+        data: {
+          id: id("prd"),
+          name: input.name,
+          slug,
+          category: input.category,
+          description: input.description ?? null,
+          price: input.price,
+          unit: input.unit ?? null,
+          imageUrl: input.imageUrl ?? null,
+          active: input.active ?? true,
+        },
+      });
+      return serializeProduct(row);
+    },
+    () => {
+      let uniqueSlug = slug;
+      let count = 1;
+      while (Array.from(fallback.products.values()).some((product) => product.slug === uniqueSlug)) {
+        uniqueSlug = `${slug}-${count++}`;
+      }
+
+      const product: StoredProduct = {
+        id: id("prd"),
+        name: input.name,
+        slug: uniqueSlug,
+        category: input.category,
+        description: input.description,
+        price: input.price,
+        unit: input.unit,
+        imageUrl: input.imageUrl,
+        active: input.active ?? true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      fallback.products.set(product.id, product);
+      return product;
+    }
+  );
+}
+
+export async function updateProduct(
+  productId: string,
+  patch: Partial<CreateProductInput>
+): Promise<StoredProduct | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.product.findUnique({ where: { id: productId } });
+      if (!existing) return null;
+
+      const row = await prisma.product.update({
+        where: { id: productId },
+        data: {
+          name: patch.name ?? existing.name,
+          slug: patch.slug ?? existing.slug,
+          category: patch.category ?? existing.category,
+          description: patch.description ?? existing.description ?? null,
+          price: patch.price ?? existing.price,
+          unit: patch.unit ?? existing.unit ?? null,
+          imageUrl: patch.imageUrl ?? existing.imageUrl ?? null,
+          active: patch.active ?? existing.active,
+        },
+      });
+      return serializeProduct(row);
+    },
+    () => {
+      const product = fallback.products.get(productId);
+      if (!product) return null;
+
+      const updated: StoredProduct = {
+        ...product,
+        name: patch.name ?? product.name,
+        slug: patch.slug ?? product.slug,
+        category: patch.category ?? product.category,
+        description: patch.description ?? product.description,
+        price: patch.price ?? product.price,
+        unit: patch.unit ?? product.unit,
+        imageUrl: patch.imageUrl ?? product.imageUrl,
+        active: patch.active ?? product.active,
+        updatedAt: new Date().toISOString(),
+      };
+      fallback.products.set(productId, updated);
+      return updated;
+    }
+  );
+}
+
+export async function deleteProduct(productId: string): Promise<boolean> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.product.findUnique({ where: { id: productId } });
+      if (!existing) return false;
+      await prisma.product.delete({ where: { id: productId } });
+      return true;
+    },
+    () => fallback.products.delete(productId)
+  );
 }
 
 export function listPlans() {
@@ -993,5 +1177,61 @@ export async function listPayments(userId: string): Promise<StoredPayment[]> {
       Array.from(fallback.payments.values())
         .filter((p) => p.userId === userId)
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+  );
+}
+
+export function monthlyEquivalentRevenue(plan: Plan) {
+  return plan.price * (30 / cycleDaysForPlan(plan));
+}
+
+export async function listAllSubscriptions(): Promise<StoredSubscription[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.subscription.findMany({ orderBy: { createdAt: "desc" } });
+      return rows.map(serializeSubscription);
+    },
+    () =>
+      Array.from(fallback.subscriptions.values()).sort((a, b) =>
+        a.createdAt < b.createdAt ? 1 : -1
+      )
+  );
+}
+
+export async function listAllOrders(): Promise<StoredOrder[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.order.findMany({ orderBy: { createdAt: "desc" } });
+      return rows.map(serializeOrder);
+    },
+    () =>
+      Array.from(fallback.orders.values()).sort((a, b) =>
+        a.createdAt < b.createdAt ? 1 : -1
+      )
+  );
+}
+
+export async function listAllPayments(): Promise<StoredPayment[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.payment.findMany({ orderBy: { createdAt: "desc" } });
+      return rows.map(serializePayment);
+    },
+    () =>
+      Array.from(fallback.payments.values()).sort((a, b) =>
+        a.createdAt < b.createdAt ? 1 : -1
+      )
+  );
+}
+
+export async function listAllDeliveries(): Promise<StoredDelivery[]> {
+  return withDbFallback(
+    async () => {
+      const rows = await prisma.delivery.findMany({ orderBy: { scheduledDate: "desc" } });
+      return rows.map(serializeDelivery);
+    },
+    () =>
+      Array.from(fallback.deliveries.values()).sort((a, b) =>
+        a.scheduledDate < b.scheduledDate ? 1 : -1
+      )
   );
 }

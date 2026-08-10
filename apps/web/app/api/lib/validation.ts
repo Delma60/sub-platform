@@ -40,6 +40,21 @@ export const addressSchema = z.object({
   isDefault: z.boolean().optional(),
 });
 
+export const productSchema = z.object({
+  name: z.string().min(2),
+  slug: z
+    .string()
+    .min(2)
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens")
+    .optional(),
+  category: z.string().min(2),
+  description: z.string().max(500).optional(),
+  price: z.number().int().nonnegative(),
+  unit: z.string().max(40).optional(),
+  imageUrl: z.string().url().optional(),
+  active: z.boolean().optional(),
+});
+
 export const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
 });

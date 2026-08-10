@@ -38,8 +38,8 @@ export default function RegisterPage() {
           ? "/dashboard"
           : requestedNext
         : isAdmin
-        ? "/admin"
-        : "/dashboard";
+          ? "/admin"
+          : "/dashboard";
 
       await router.push(destination);
     } catch {

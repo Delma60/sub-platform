@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
+import { apiSuccess } from "../lib/response";
+import { listProducts } from "../lib/data-store";
 
 export async function GET() {
-  return NextResponse.json({
-    success: true,
-    data: [
-      {
-        id: "prod_001",
-        name: "Starter Pantry Box",
-        slug: "starter-pantry-box",
-        price: 2500,
-        description: "A sample subscription box for early setup.",
-      },
-    ],
-  });
+  const products = await listProducts({ activeOnly: true });
+  return NextResponse.json(apiSuccess({ products }));
 }
