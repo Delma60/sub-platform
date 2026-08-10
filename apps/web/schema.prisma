@@ -12,11 +12,130 @@ enum UserRole {
   admin
 }
 
+enum PlanId {
+  single
+  family
+  bulk
+}
+
+enum SubscriptionStatus {
+  active
+  paused
+  cancelled
+}
+
+enum OrderStatus {
+  processing
+  packed
+  out_for_delivery
+  delivered
+}
+
+enum DeliveryStatus {
+  scheduled
+  out_for_delivery
+  delivered
+  issue
+  skipped
+}
+
+enum PaymentStatus {
+  success
+  failed
+  pending
+}
+
 model User {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         UserRole @default(customer)
-  createdAt    DateTime @default(now())
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  passwordHash  String
+  role          UserRole        @default(customer)
+  createdAt     DateTime        @default(now())
+  addresses     Address[]
+  subscriptions Subscription[]
+  orders        Order[]
+  deliveries    Delivery[]
+  payments      Payment[]
+}
+
+model Address {
+  id        String    @id
+  userId    String
+  label     String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  isDefault Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  deliveries Delivery[]
+
+  @@index([userId])
+}
+
+model Subscription {
+  id               String             @id
+  userId           String
+  planId           PlanId
+  status           SubscriptionStatus @default(active)
+  nextDeliveryDate DateTime
+  deliveryDayOfWeek Int?
+  itemSwaps        Json               @db.JsonB @default("{}")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orders           Order[]
+
+  @@index([userId])
+}
+
+model Order {
+  id             String      @id
+  userId         String
+  subscriptionId String
+  planId         PlanId
+  status         OrderStatus @default(processing)
+  total          Int
+  createdAt      DateTime    @default(now())
+  deliveryDate   DateTime
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  deliveries     Delivery[]
+
+  @@index([userId])
+  @@index([subscriptionId])
+}
+
+model Delivery {
+  id            String         @id
+  userId        String
+  orderId       String
+  addressId     String?
+  status        DeliveryStatus @default(scheduled)
+  scheduledDate DateTime
+  deliveredAt   DateTime?
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  address       Address?       @relation(fields: [addressId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([orderId])
+}
+
+model Payment {
+  id        String        @id
+  userId    String
+  orderId   String
+  amount    Int
+  status    PaymentStatus @default(pending)
+  method    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([orderId])
 }
