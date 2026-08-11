@@ -6,5 +6,6 @@ export async function requireRider(request: NextRequest) {
   const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = verifySessionToken(cookie);
   if (!session || (session.role !== "rider" && session.role !== "admin")) return null;
-  return await findUserById(session.sub);
+  const user = await findUserById(session.sub);
+  return user?.active ? user : null;
 }

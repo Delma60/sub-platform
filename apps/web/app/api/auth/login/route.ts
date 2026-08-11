@@ -40,6 +40,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    if (!user.active) {
+      return NextResponse.json(apiError("This account is inactive", 403), {
+        status: 403,
+      });
+    }
+
     const adminSeedEmail = process.env.ADMIN_SEED_EMAIL?.trim().toLowerCase();
     if (
       adminSeedEmail &&

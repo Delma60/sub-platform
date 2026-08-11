@@ -6,6 +6,7 @@ import {
   Truck,
   Receipt,
   ShoppingCart,
+  UserRoundCheck,
   Menu,
   X,
   ChevronRight,
@@ -16,6 +17,7 @@ export const ProductsIcon = Package;
 export const PlansIcon = ClipboardList;
 export const SubscriptionsIcon = Users;
 export const DeliveriesIcon = Truck;
+export const RidersIcon = UserRoundCheck;
 export const PaymentsIcon = Receipt;
 export const OrdersIcon = ShoppingCart;
 export const MenuIcon = Menu;

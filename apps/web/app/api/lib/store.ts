@@ -8,18 +8,24 @@ export type StoredUser = {
   phone?: string | null;
   passwordHash: string;
   role: "customer" | "admin" | "rider";
+  active: boolean;
   createdAt: string;
 };
 
-export type CreateUserInput = Omit<StoredUser, "id" | "createdAt"> & {
+export type CreateUserInput = Omit<StoredUser, "id" | "createdAt" | "active"> & {
   role?: StoredUser["role"];
+  active?: boolean;
 };
 
 function normalizeStoredUser(
-  user: Omit<StoredUser, "createdAt"> & { createdAt: string | Date }
+  user: Omit<StoredUser, "createdAt" | "active"> & {
+    active?: boolean;
+    createdAt: string | Date;
+  }
 ): StoredUser {
   return {
     ...user,
+    active: user.active ?? true,
     createdAt:
       typeof user.createdAt === "string"
         ? user.createdAt
@@ -113,11 +119,13 @@ export async function findUserById(id: string) {
 
 export async function createUser(user: CreateUserInput) {
   const role = user.role ?? "customer";
+  const active = user.active ?? true;
 
   if (!(await isDbAvailable())) {
     const record: StoredUser = {
       ...user,
       role,
+      active,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
@@ -133,6 +141,7 @@ export async function createUser(user: CreateUserInput) {
         phone: user.phone ?? null,
         passwordHash: user.passwordHash,
         role,
+        active,
       },
     });
     return normalizeStoredUser(record);
@@ -140,6 +149,7 @@ export async function createUser(user: CreateUserInput) {
     const record: StoredUser = {
       ...user,
       role,
+      active,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
@@ -150,7 +160,7 @@ export async function createUser(user: CreateUserInput) {
 
 export async function updateUser(
   id: string,
-  patch: Partial<Pick<StoredUser, "name" | "email" | "phone" | "passwordHash" | "role">>
+  patch: Partial<Pick<StoredUser, "name" | "email" | "phone" | "passwordHash" | "role" | "active">>
 ) {
   if (!(await isDbAvailable())) {
     const user = await findUserById(id);
@@ -184,6 +194,7 @@ export async function updateUser(
         phone: patch.phone === undefined ? user.phone ?? null : patch.phone,
         passwordHash: patch.passwordHash ?? user.passwordHash,
         role: patch.role ?? user.role,
+        active: patch.active ?? user.active,
       },
     });
 
@@ -230,6 +241,28 @@ export async function listUsersByIds(ids: string[]) {
     );
     return new Map(matchingUsers.map((user) => [user.id, user]));
   });
+}
+
+export async function listUsers(role?: StoredUser["role"]) {
+  if (!(await isDbAvailable())) {
+    return Array.from(users.values())
+      .filter((user) => (role ? user.role === role : true))
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  }
+
+  return await withDbFallback(
+    async () => {
+      const foundUsers = await prisma.user.findMany({
+        where: role ? { role } : undefined,
+        orderBy: { createdAt: "desc" },
+      });
+      return foundUsers.map(normalizeStoredUser);
+    },
+    () =>
+      Array.from(users.values())
+        .filter((user) => (role ? user.role === role : true))
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+  );
 }
 
 export async function countUsers(role?: StoredUser["role"]) {

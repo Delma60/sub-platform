@@ -89,6 +89,32 @@ export const updateProfileSchema = z.object({
     .or(z.literal("")),
 });
 
+export const adminCreateRiderSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9]{7,15}$/, "Use an international phone number")
+    .optional()
+    .or(z.literal("")),
+  password: z.string().min(8),
+  active: z.boolean().optional(),
+});
+
+export const adminUpdateRiderSchema = z.object({
+  name: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9]{7,15}$/, "Use an international phone number")
+    .optional()
+    .or(z.literal("")),
+  password: z.string().min(8).optional().or(z.literal("")),
+  active: z.boolean().optional(),
+});
+
 export const notificationPreferenceSchema = z.object({
   inAppEnabled: z.boolean().optional(),
   emailEnabled: z.boolean().optional(),

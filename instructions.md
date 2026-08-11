@@ -64,6 +64,13 @@ FLW_PUBLIC_KEY=<flutterwave-public-key>
 FLW_SECRET_KEY=<flutterwave-secret-key>
 FLW_ENCRYPTION_KEY=<flutterwave-encryption-key>
 FLW_WEBHOOK_HASH=<your-chosen-webhook-secret-hash>
+RESEND_API_KEY=<resend-api-key>
+RESEND_FROM_EMAIL=Oja <notifications@your-domain.com>
+TERMII_API_KEY=<termii-api-key>
+TERMII_BASE_URL=<termii-account-send-sms-endpoint>
+TERMII_SENDER_ID=Oja
+TERMII_CHANNEL=generic
+CRON_SECRET=<shared-secret-for-cron-routes>
 ```
 
 **`apps/mobile/.env`:**

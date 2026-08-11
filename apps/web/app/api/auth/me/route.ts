@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   }
 
   const user = await findUserById(session.sub);
-  if (!user) {
+  if (!user || !user.active) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
   }
 
@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest) {
     ...parsed.data,
     phone: parsed.data.phone === "" ? null : parsed.data.phone,
   });
-  if (!user) {
+  if (!user || !user.active) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
   }
 

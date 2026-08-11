@@ -6,5 +6,6 @@ export async function getCurrentRider() {
   const cookieStore = await cookies();
   const session = verifySessionToken(cookieStore.get(SESSION_COOKIE_NAME)?.value);
   if (!session || (session.role !== "rider" && session.role !== "admin")) return null;
-  return await findUserById(session.sub);
+  const user = await findUserById(session.sub);
+  return user?.active ? user : null;
 }

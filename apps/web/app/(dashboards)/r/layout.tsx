@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentRider } from "../../lib/get-current-rider";
+import { RiderNav } from "./components/rider-nav";
 
 export default async function RiderLayout({
   children,
@@ -32,6 +33,9 @@ export default async function RiderLayout({
               </button>
             </form>
           </nav>
+        </div>
+        <div className="mx-auto max-w-6xl px-5 pb-4">
+          <RiderNav />
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-5 py-8">{children}</main>

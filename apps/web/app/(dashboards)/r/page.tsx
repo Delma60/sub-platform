@@ -1,6 +1,12 @@
-import { listAllAddresses, listAllDeliveries } from "../../api/lib/data-store";
+import Link from "next/link";
+import {
+  listAllAddresses,
+  listAllDeliveries,
+  listAllOrders,
+  listPlans,
+} from "../../api/lib/data-store";
 import { listUsersByIds } from "../../api/lib/store";
-import { StatusBadge } from "../u/components/status-badge";
+import { RiderDeliveriesList } from "./deliveries/rider-deliveries-list";
 
 function isSameDay(a: Date, b: Date) {
   return (
@@ -11,16 +17,49 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default async function RiderPage() {
-  const [deliveries, addresses] = await Promise.all([
+  const [deliveries, orders, addresses, plans] = await Promise.all([
     listAllDeliveries(),
+    listAllOrders(),
     listAllAddresses(),
+    listPlans(),
   ]);
+
   const today = new Date();
   const todaysDeliveries = deliveries.filter((delivery) =>
-    isSameDay(new Date(delivery.scheduledDate), today)
+    isSameDay(new Date(delivery.scheduledDate), today),
   );
-  const users = await listUsersByIds(todaysDeliveries.map((delivery) => delivery.userId));
-  const addressById = new Map(addresses.map((address) => [address.id, address]));
+
+  const usersById = await listUsersByIds(todaysDeliveries.map((d) => d.userId));
+  const orderMap = new Map(orders.map((o) => [o.id, o]));
+  const addressMap = new Map(addresses.map((a) => [a.id, a]));
+  const planMap = new Map(plans.map((p) => [p.id, p]));
+
+  const enriched = todaysDeliveries.map((delivery) => {
+    const user = usersById.get(delivery.userId);
+    const order = orderMap.get(delivery.orderId);
+    const plan = order ? planMap.get(order.planId) : null;
+    const address = delivery.addressId ? addressMap.get(delivery.addressId) : null;
+
+    return {
+      id: delivery.id,
+      status: delivery.status,
+      scheduledDate: delivery.scheduledDate,
+      deliveredAt: delivery.deliveredAt,
+      orderId: delivery.orderId,
+      planName: plan?.name ?? "Plan",
+      customerName: user?.name ?? "Customer",
+      customerPhone: user?.phone ?? null,
+      address: address
+        ? {
+            label: address.label,
+            line1: address.line1,
+            line2: address.line2 ?? null,
+            city: address.city,
+            state: address.state,
+          }
+        : null,
+    };
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,70 +72,27 @@ export default async function RiderPage() {
             Today&apos;s deliveries
           </h1>
           <p className="mt-1 text-sm text-[#6B6558]">
-            {todaysDeliveries.length} stops scheduled for this route.
+            {enriched.length} stops scheduled for this route.
           </p>
         </div>
-        <div className="rounded-lg border border-[#E4DCC8] bg-white px-4 py-3 text-sm text-[#6B6558]">
-          {today.toLocaleDateString("en-NG", {
-            weekday: "long",
-            month: "short",
-            day: "numeric",
-          })}
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg border border-[#E4DCC8] bg-white px-4 py-3 text-sm text-[#6B6558]">
+            {today.toLocaleDateString("en-NG", {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+            })}
+          </div>
+          <Link
+            href="/r/deliveries"
+            className="rounded-lg bg-[#24402F] px-4 py-3 text-sm font-medium text-white transition hover:bg-[#1a2f22]"
+          >
+            All deliveries
+          </Link>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[#E4DCC8] bg-white">
-        {todaysDeliveries.length === 0 ? (
-          <div className="px-6 py-14 text-center">
-            <p className="font-medium text-[#17251C]">No deliveries today</p>
-            <p className="mt-2 text-sm text-[#6B6558]">
-              Scheduled route stops will show here when orders are ready.
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-[#E4DCC8]">
-            {todaysDeliveries.map((delivery) => {
-              const customer = users.get(delivery.userId);
-              const address = delivery.addressId
-                ? addressById.get(delivery.addressId)
-                : null;
-
-              return (
-                <article
-                  key={delivery.id}
-                  className="grid gap-4 px-5 py-4 md:grid-cols-[1.3fr_1fr_auto]"
-                >
-                  <div>
-                    <p className="font-medium text-[#17251C]">
-                      {customer?.name ?? "Customer"}
-                    </p>
-                    <p className="mt-1 text-sm text-[#6B6558]">
-                      Order {delivery.orderId}
-                    </p>
-                  </div>
-
-                  <div className="text-sm text-[#6B6558]">
-                    {address ? (
-                      <>
-                        <p className="font-medium text-[#17251C]">{address.label}</p>
-                        <p>
-                          {address.line1}, {address.city}, {address.state}
-                        </p>
-                      </>
-                    ) : (
-                      <p>No address selected</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-start justify-end">
-                    <StatusBadge status={delivery.status} />
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <RiderDeliveriesList initialDeliveries={enriched} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   PaymentsIcon,
   PlansIcon,
   ProductsIcon,
+  RidersIcon,
   SubscriptionsIcon,
 } from "./icons";
 import { LucideIcon } from "lucide-react";
@@ -48,6 +49,7 @@ const NAV_GROUPS: { label: string | null; items: NavItem[] }[] = [
       },
       { href: "/a/orders", label: "Orders", icon: OrdersIcon },
       { href: "/a/deliveries", label: "Deliveries", icon: DeliveriesIcon },
+      { href: "/a/riders", label: "Riders", icon: RidersIcon },
       { href: "/a/payments", label: "Payments", icon: PaymentsIcon },
     ],
   },
