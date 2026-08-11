@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentRider } from "../../lib/get-current-rider";
-import { RiderNav } from "./components/rider-nav";
+import { RiderSidebar } from "./components/rider-sidebar";
 
 export default async function RiderLayout({
   children,
@@ -16,28 +15,7 @@ export default async function RiderLayout({
 
   return (
     <div className="min-h-screen bg-[#F7F7F3] text-[#17251C]">
-      <header className="border-b border-[#E4DCC8] bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-          <Link href="/r" className="font-display text-2xl">
-            Oja Rider
-          </Link>
-          <nav className="flex items-center gap-4 text-sm text-[#6B6558]">
-            {rider.role === "admin" && (
-              <Link href="/a" className="hover:text-[#17251C]">
-                Admin
-              </Link>
-            )}
-            <form action="/api/auth/logout" method="POST">
-              <button className="rounded-md border border-[#E4DCC8] px-3 py-1.5 hover:border-[#24402F]">
-                Sign out
-              </button>
-            </form>
-          </nav>
-        </div>
-        <div className="mx-auto max-w-6xl px-5 pb-4">
-          <RiderNav />
-        </div>
-      </header>
+      <RiderSidebar rider={{ name: rider.name, role: rider.role }} />
       <main className="mx-auto max-w-6xl px-5 py-8">{children}</main>
     </div>
   );
