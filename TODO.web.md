@@ -15,7 +15,7 @@ The website is the fullstack core: it hosts the customer-facing web app, the adm
 - [ ] Deploy skeleton to Vercel (staging)
 
 ## 2. Database & Backend Logic
-- [ ] Create schema: users, addresses, products, subscription_plans, subscriptions, orders, order_items, payments, deliveries (partial: no `order_items` table yet)
+- [x] Create schema: users, addresses, products, subscription_plans, subscriptions, orders, order_items, payments, deliveries
 - [x] Seed script with sample products/plans for dev
 - [x] Order-generation logic (turns active subscriptions into orders each cycle)
 - [x] Subscription state machine (active, paused, cancelled, payment_failed)
@@ -23,13 +23,13 @@ The website is the fullstack core: it hosts the customer-facing web app, the adm
 ## 3. API Routes (consumed by both web AND mobile app)
 - [x] `POST /api/auth/register`, `/login`, `/refresh`, `/logout`
 - [x] `GET /api/products`, admin `POST/PUT/DELETE /api/products/:id`
-- [ ] `GET /api/plans`, admin CRUD for plans (partial: fixed plan update exists; create/delete are not implemented)
+- [x] `GET /api/plans`, admin CRUD for plans
 - [x] `POST /api/subscriptions` (subscribe), `PATCH` (pause/skip/cancel/upgrade)
 - [x] `GET /api/orders` (user's order history), `GET /api/orders/:id`
 - [x] `POST /api/payments/initiate` (Flutterwave checkout init)
 - [x] `POST /api/payments/webhook` (Flutterwave webhook - verify signature, update DB)
 - [x] `POST /api/uploads/sign` (S3 signed URL for image uploads)
-- [ ] `PATCH /api/deliveries/:id` (rider/admin updates delivery status) (partial: admin status update and customer skip exist; rider update flow is not wired yet)
+- [x] `PATCH /api/deliveries/:id` (customer skip plus rider/admin status updates with role and ownership checks)
 - [x] Zod validation on every route, consistent error response shape
 - [x] Rate limiting on public/auth routes
 

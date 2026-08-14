@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { requireUser } from "../../lib/require-user";
 import { skipDelivery } from "../../lib/data-store";
+import { customerDeliveryActionSchema } from "../../lib/validation";
 
 export async function PATCH(
   request: NextRequest,
@@ -12,8 +13,12 @@ export async function PATCH(
 
   const params = await context.params;
   const body = await request.json().catch(() => null);
-  if (body?.action !== "skip") {
-    return NextResponse.json(apiError("Unsupported action", 422), { status: 422 });
+  const parsed = customerDeliveryActionSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      apiError(parsed.error.issues[0]?.message ?? "Invalid input", 422),
+      { status: 422 },
+    );
   }
 
   const result = await skipDelivery(user.id, params.id);

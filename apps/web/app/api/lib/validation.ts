@@ -34,6 +34,14 @@ export const adminDeliveryUpdateSchema = z.object({
   status: z.enum(["scheduled", "out_for_delivery", "delivered", "issue", "skipped"]),
 });
 
+export const riderDeliveryUpdateSchema = z.object({
+  status: z.enum(["out_for_delivery", "delivered", "issue"]),
+});
+
+export const customerDeliveryActionSchema = z.object({
+  action: z.literal("skip"),
+});
+
 export const adminOrderUpdateSchema = z.object({
   status: z.enum(["processing", "packed", "out_for_delivery", "delivered"]),
 });
@@ -140,6 +148,22 @@ export const changePasswordSchema = z.object({
 export const initiatePaymentSchema = z.object({
   orderId: z.string().min(1),
 });
+
+const webhookTransactionSchema = z.object({
+  tx_ref: z.string().min(1),
+  status: z.string().min(1),
+  id: z.union([z.string(), z.number()]).optional(),
+});
+
+export const flutterwaveWebhookSchema = z
+  .object({
+    data: webhookTransactionSchema.optional(),
+    tx_ref: z.string().min(1).optional(),
+    status: z.string().min(1).optional(),
+  })
+  .refine((payload) => payload.data || (payload.tx_ref && payload.status), {
+    message: "Missing transaction reference or status",
+  });
 
 export const uploadSignSchema = z.object({
   fileName: z.string().min(1).max(180),

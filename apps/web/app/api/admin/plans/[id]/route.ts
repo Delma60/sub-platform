@@ -38,8 +38,9 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
   const { id } = await context.params;
   if (!PLAN_ID_ORDER.includes(id as PlanId)) return NextResponse.json(apiError("Unknown plan", 404), { status: 404 });
   try {
-    await deletePlan(id as PlanId);
-    return new NextResponse(null, { status: 204 });
+    const deleted = await deletePlan(id as PlanId);
+    if (!deleted) return NextResponse.json(apiError("Plan not found", 404), { status: 404 });
+    return NextResponse.json(apiSuccess({ deleted: true }));
   } catch (error) {
     return NextResponse.json(apiError(error instanceof Error ? error.message : "Could not delete plan", 409), { status: 409 });
   }

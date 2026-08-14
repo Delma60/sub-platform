@@ -276,6 +276,10 @@ function id(prefix: string) {
   return `${prefix}_${crypto.randomUUID().split("-")[0]}`;
 }
 
+function isUniqueConstraintError(error: unknown) {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "P2002");
+}
+
 function addDays(date: Date, days: number) {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
@@ -684,6 +688,16 @@ export async function updatePlan(
   );
 }
 
+export function nextCycleDeliveryDate(
+  plan: Plan,
+  currentDeliveryDate: Date,
+  deliveryDayOfWeek: number | null,
+) {
+  return deliveryDayOfWeek == null
+    ? new Date(addDays(currentDeliveryDate, cycleDaysForPlan(plan)))
+    : nextOccurrenceOfWeekday(currentDeliveryDate, deliveryDayOfWeek);
+}
+
 function orderItemSnapshots(planId: PlanId, total: number, swaps: Record<string, string> = {}) {
   const ids = PLAN_ITEM_IDS[planId].map((itemId) => swaps[itemId] ?? itemId);
   const unitPrice = ids.length ? Math.floor(total / ids.length) : total;
@@ -724,6 +738,8 @@ export async function deletePlan(planId: PlanId): Promise<boolean> {
     async () => {
       const subscriptions = await prisma.subscription.count({ where: { planId } });
       if (subscriptions > 0) throw new Error("Plan has subscriptions and cannot be deleted");
+      const existing = await prisma.plan.findUnique({ where: { id: planId } });
+      if (!existing) return false;
       await prisma.plan.delete({ where: { id: planId } });
       return true;
     },
@@ -1005,6 +1021,7 @@ export async function createSubscription(userId: string, planId: PlanId): Promis
         status: "scheduled",
         scheduledDate: nextDeliveryDate,
         deliveredAt: null,
+        riderId: null,
       };
       fallback.deliveries.set(delivery.id, delivery);
 
@@ -1451,18 +1468,30 @@ export async function generateDueSubscriptionOrders(now = new Date()) {
         const plan = await getPlan(subscription.planId);
         if (!plan) continue;
 
-        const cycleDays = cycleDaysForPlan(plan);
         const cycleDate = subscription.nextDeliveryDate;
-        const nextDeliveryDate =
-          subscription.deliveryDayOfWeek != null
-            ? nextOccurrenceOfWeekday(cycleDate, subscription.deliveryDayOfWeek)
-            : new Date(addDays(cycleDate, cycleDays));
+        const nextDeliveryDate = nextCycleDeliveryDate(
+          plan,
+          cycleDate,
+          subscription.deliveryDayOfWeek,
+        );
         const defaultAddress = await prisma.address.findFirst({
           where: { userId: subscription.userId, isDefault: true },
         });
 
-        const result = await prisma.$transaction(async (tx) => {
-          const order = await tx.order.create({
+        let result;
+        try {
+          result = await prisma.$transaction(async (tx) => {
+            const claimed = await tx.subscription.updateMany({
+              where: {
+                id: subscription.id,
+                status: "active",
+                nextDeliveryDate: subscription.nextDeliveryDate,
+              },
+              data: { nextDeliveryDate },
+            });
+            if (claimed.count !== 1) return null;
+
+            const order = await tx.order.create({
             data: {
               id: id("ord"),
               userId: subscription.userId,
@@ -1503,13 +1532,14 @@ export async function generateDueSubscriptionOrders(now = new Date()) {
             },
           });
 
-          await tx.subscription.update({
-            where: { id: subscription.id },
-            data: { nextDeliveryDate },
+            return { order, delivery };
           });
+        } catch (error) {
+          if (isUniqueConstraintError(error)) continue;
+          throw error;
+        }
 
-          return { order, delivery };
-        });
+        if (!result) continue;
 
         generated.push({
           order: serializeOrder(result.order),
@@ -1531,12 +1561,12 @@ export async function generateDueSubscriptionOrders(now = new Date()) {
         const plan = await getPlan(subscription.planId);
         if (!plan) continue;
 
-        const cycleDays = cycleDaysForPlan(plan);
         const cycleDate = new Date(subscription.nextDeliveryDate);
-        const nextDeliveryDate =
-          subscription.deliveryDayOfWeek != null
-            ? nextOccurrenceOfWeekday(cycleDate, subscription.deliveryDayOfWeek).toISOString()
-            : addDays(cycleDate, cycleDays);
+        const nextDeliveryDate = nextCycleDeliveryDate(
+          plan,
+          cycleDate,
+          subscription.deliveryDayOfWeek,
+        ).toISOString();
         const defaultAddress = Array.from(fallback.addresses.values()).find(
           (address) => address.userId === subscription.userId && address.isDefault
         );
@@ -1561,6 +1591,7 @@ export async function generateDueSubscriptionOrders(now = new Date()) {
           status: "scheduled",
           scheduledDate: nextDeliveryDate,
           deliveredAt: null,
+          riderId: null,
         };
         fallback.deliveries.set(delivery.id, delivery);
 
@@ -1702,6 +1733,7 @@ export async function skipDelivery(
         status: "scheduled",
         scheduledDate: nextDate,
         deliveredAt: null,
+        riderId: null,
       };
       fallback.deliveries.set(newDelivery.id, newDelivery);
 

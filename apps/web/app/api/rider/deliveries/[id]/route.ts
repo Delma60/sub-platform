@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../../lib/response";
 import { requireRider } from "../../../lib/require-rider";
-import { adminDeliveryUpdateSchema } from "../../../lib/validation";
+import { adminDeliveryUpdateSchema, riderDeliveryUpdateSchema } from "../../../lib/validation";
 import { adminUpdateDeliveryStatus, riderUpdateDeliveryStatus } from "../../../lib/data-store";
 import { notifyDeliveryStatusUpdated } from "../../../lib/notifications";
 
@@ -16,7 +16,7 @@ export async function PATCH(
 
   const params = await context.params;
   const body = await request.json().catch(() => null);
-  const parsed = adminDeliveryUpdateSchema.safeParse(body);
+  const parsed = (rider.role === "admin" ? adminDeliveryUpdateSchema : riderDeliveryUpdateSchema).safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       apiError(parsed.error.issues[0]?.message ?? "Invalid input", 422),
