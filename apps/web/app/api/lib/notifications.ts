@@ -96,6 +96,14 @@ async function sendEmail(to: string, subject: string, text: string): Promise<Pro
   }
 }
 
+export async function sendPasswordResetEmail(to: string, resetUrl: string) {
+  return sendEmail(
+    to,
+    "Reset your Oja password",
+    `We received a request to reset your password. Open this secure link within 30 minutes: ${resetUrl}\n\nIf you did not request this, you can ignore this message.`,
+  );
+}
+
 async function sendSms(to: string | null | undefined, text: string): Promise<ProviderResult> {
   const apiKey = process.env.TERMII_API_KEY;
   const baseUrl = process.env.TERMII_BASE_URL;

@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json(
       apiSuccess({
         user: { id: user.id, name: user.name, email: user.email, role: user.role },
+        accessToken: token,
+        expiresIn: SESSION_MAX_AGE_SECONDS,
       }),
       { status: 201 }
     );

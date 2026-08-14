@@ -45,6 +45,14 @@ export const planUpdateSchema = z.object({
   features: z.array(z.string().min(1)).min(1).max(12).optional(),
 });
 
+export const planCreateSchema = z.object({
+  id: z.enum(["single", "family", "bulk"]),
+  name: z.string().min(2),
+  price: z.number().int().nonnegative(),
+  frequency: z.enum(["weekly", "biweekly", "monthly"]),
+  features: z.array(z.string().min(1)).min(1).max(12),
+});
+
 export const swapBoxItemSchema = z.object({
   fromItemId: z.string().min(1),
   toItemId: z.string().min(1),

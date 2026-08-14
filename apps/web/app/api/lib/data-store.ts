@@ -105,6 +105,7 @@ export type StoredDelivery = {
   status: DeliveryStatus;
   scheduledDate: string;
   deliveredAt: string | null;
+  riderId: string | null;
 };
 
 export type PaymentStatus = "success" | "failed" | "pending";
@@ -376,6 +377,7 @@ function serializeDelivery(row: {
   status: string;
   scheduledDate: Date;
   deliveredAt: Date | null;
+  riderId?: string | null;
 }): StoredDelivery {
   return {
     id: row.id,
@@ -385,6 +387,7 @@ function serializeDelivery(row: {
     status: row.status as DeliveryStatus,
     scheduledDate: row.scheduledDate.toISOString(),
     deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
+    riderId: row.riderId ?? null,
   };
 }
 
@@ -678,6 +681,39 @@ export async function updatePlan(
       fallback.plans.set(planId, updated);
       return updated;
     }
+  );
+}
+
+function orderItemSnapshots(planId: PlanId, total: number, swaps: Record<string, string> = {}) {
+  const ids = PLAN_ITEM_IDS[planId].map((itemId) => swaps[itemId] ?? itemId);
+  const unitPrice = ids.length ? Math.floor(total / ids.length) : total;
+  return ids.map((itemId, index) => ({
+    name: CATALOG_ITEMS.find((item) => item.id === itemId)?.name ?? itemId,
+    quantity: 1,
+    unitPrice: index === ids.length - 1 ? total - unitPrice * (ids.length - 1) : unitPrice,
+  }));
+}
+
+export async function createPlan(plan: Plan): Promise<Plan> {
+  return withDbFallback(
+    async () => serializePlan(await prisma.plan.create({ data: plan })),
+    () => {
+      if (fallback.plans.has(plan.id)) throw new Error("Plan already exists");
+      fallback.plans.set(plan.id, plan);
+      return plan;
+    },
+  );
+}
+
+export async function deletePlan(planId: PlanId): Promise<boolean> {
+  return withDbFallback(
+    async () => {
+      const subscriptions = await prisma.subscription.count({ where: { planId } });
+      if (subscriptions > 0) throw new Error("Plan has subscriptions and cannot be deleted");
+      await prisma.plan.delete({ where: { id: planId } });
+      return true;
+    },
+    () => fallback.plans.delete(planId),
   );
 }
 
@@ -1798,6 +1834,30 @@ export async function adminUpdateDeliveryStatus(
       fallback.deliveries.set(delivery.id, delivery);
       return delivery;
     }
+  );
+}
+
+export async function riderUpdateDeliveryStatus(
+  deliveryId: string,
+  riderId: string,
+  status: DeliveryStatus,
+): Promise<StoredDelivery | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.delivery.findFirst({ where: { id: deliveryId, riderId } });
+      if (!existing) return null;
+      return serializeDelivery(await prisma.delivery.update({
+        where: { id: deliveryId },
+        data: { status, deliveredAt: status === "delivered" ? new Date() : existing.deliveredAt },
+      }));
+    },
+    () => {
+      const delivery = fallback.deliveries.get(deliveryId);
+      if (!delivery || delivery.riderId !== riderId) return null;
+      delivery.status = status;
+      if (status === "delivered") delivery.deliveredAt = new Date().toISOString();
+      return delivery;
+    },
   );
 }
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../../lib/response";
 import { requireAdmin } from "../../../lib/require-admin";
 import { planUpdateSchema } from "../../../lib/validation";
-import { updatePlan, PLAN_ID_ORDER, type PlanId } from "../../../lib/data-store";
+import { deletePlan, updatePlan, PLAN_ID_ORDER, type PlanId } from "../../../lib/data-store";
 
 export async function PATCH(
   request: NextRequest,
@@ -31,4 +31,16 @@ export async function PATCH(
   const plan = await updatePlan(id as PlanId, parsed.data);
   if (!plan) return NextResponse.json(apiError("Plan not found", 404), { status: 404 });
   return NextResponse.json(apiSuccess({ plan }));
+}
+
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  if (!(await requireAdmin(request))) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
+  const { id } = await context.params;
+  if (!PLAN_ID_ORDER.includes(id as PlanId)) return NextResponse.json(apiError("Unknown plan", 404), { status: 404 });
+  try {
+    await deletePlan(id as PlanId);
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    return NextResponse.json(apiError(error instanceof Error ? error.message : "Could not delete plan", 409), { status: 409 });
+  }
 }

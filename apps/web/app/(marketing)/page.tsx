@@ -276,7 +276,7 @@ export default function HomePage() {
                 </ul>
 
                 <Link
-                  href="/auth/register"
+                  href={`/checkout?plan=${plan.name.toLowerCase()}`}
                   className={`mt-8 block rounded-md px-6 py-3 text-center text-sm font-medium transition ${
                     plan.highlight
                       ? "bg-[var(--accent)] text-white hover:bg-[#243020]"

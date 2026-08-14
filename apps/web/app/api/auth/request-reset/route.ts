@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from "../../lib/response";
 import { requestPasswordResetSchema } from "../../lib/validation";
 import { createPasswordResetToken } from "../../lib/store";
 import { checkRateLimit } from "../../lib/rate-limit";
+import { sendPasswordResetEmail } from "../../lib/notifications";
 
 export async function POST(request: NextRequest) {
   const limit = checkRateLimit(request, "auth:request-reset", {
@@ -26,6 +27,12 @@ export async function POST(request: NextRequest) {
   }
 
   const reset = await createPasswordResetToken(parsed.data.email);
+  if (reset) {
+    const resetUrl = new URL("/auth/reset-password", request.nextUrl.origin);
+    resetUrl.searchParams.set("token", reset.token);
+    const delivery = await sendPasswordResetEmail(parsed.data.email, resetUrl.toString());
+    if (delivery.status === "failed") console.error("Password reset email failed:", delivery.error);
+  }
 
   return NextResponse.json(
     apiSuccess({

@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const session = verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value);
+  const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const session = verifySessionToken(bearer ?? request.cookies.get(SESSION_COOKIE_NAME)?.value);
   if (!session) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
   const user = await findUserById(session.sub);
@@ -34,7 +35,11 @@ export async function POST(request: NextRequest) {
   });
 
   const response = NextResponse.json(
-    apiSuccess({ user: { id: user.id, name: user.name, email: user.email, role: user.role } })
+    apiSuccess({
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      accessToken: token,
+      expiresIn: SESSION_MAX_AGE_SECONDS,
+    })
   );
   response.cookies.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
