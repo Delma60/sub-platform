@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run"
   },
   "prisma": {
     "schema": "schema.prisma",
@@ -31,5 +32,6 @@
     "prisma": "^5.15.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+    ,"vitest": "^3.2.4"
   }
 }

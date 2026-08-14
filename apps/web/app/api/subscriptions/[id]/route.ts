@@ -43,7 +43,14 @@ export async function PATCH(
   }
 
   const status = action === "pause" ? "paused" : action === "resume" ? "active" : "cancelled";
-  const updated = await updateSubscriptionStatus(user.id, id, status);
-  if (!updated) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
-  return NextResponse.json(apiSuccess({ subscription: updated }));
+  try {
+    const updated = await updateSubscriptionStatus(user.id, id, status);
+    if (!updated) return NextResponse.json(apiError("Subscription not found", 404), { status: 404 });
+    return NextResponse.json(apiSuccess({ subscription: updated }));
+  } catch (error) {
+    return NextResponse.json(
+      apiError(error instanceof Error ? error.message : "Invalid subscription transition", 409),
+      { status: 409 },
+    );
+  }
 }

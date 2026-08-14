@@ -144,6 +144,7 @@ model Order {
 
   @@index([userId])
   @@index([subscriptionId])
+  @@unique([subscriptionId, deliveryDate])
 }
 
 model OrderItem {

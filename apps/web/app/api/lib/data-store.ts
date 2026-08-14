@@ -694,6 +694,20 @@ function orderItemSnapshots(planId: PlanId, total: number, swaps: Record<string,
   }));
 }
 
+const SUBSCRIPTION_TRANSITIONS: Record<SubscriptionStatus, readonly SubscriptionStatus[]> = {
+  active: ["paused", "cancelled", "payment_failed"],
+  paused: ["active", "cancelled", "payment_failed"],
+  payment_failed: ["active", "cancelled"],
+  cancelled: [],
+};
+
+export function canTransitionSubscription(
+  from: SubscriptionStatus,
+  to: SubscriptionStatus,
+) {
+  return from === to || SUBSCRIPTION_TRANSITIONS[from].includes(to);
+}
+
 export async function createPlan(plan: Plan): Promise<Plan> {
   return withDbFallback(
     async () => serializePlan(await prisma.plan.create({ data: plan })),
@@ -925,6 +939,7 @@ export async function createSubscription(userId: string, planId: PlanId): Promis
             status: "processing",
             total: plan.price,
             deliveryDate: nextDeliveryDate,
+            items: { create: orderItemSnapshots(planId, plan.price) },
           },
         });
 
@@ -936,17 +951,6 @@ export async function createSubscription(userId: string, planId: PlanId): Promis
             addressId: defaultAddress?.id ?? null,
             status: "scheduled",
             scheduledDate: nextDeliveryDate,
-          },
-        });
-
-        await tx.payment.create({
-          data: {
-            id: id("pay"),
-            userId,
-            orderId: order.id,
-            amount: plan.price,
-            status: "success",
-            method: "Flutterwave",
           },
         });
 
@@ -1004,17 +1008,6 @@ export async function createSubscription(userId: string, planId: PlanId): Promis
       };
       fallback.deliveries.set(delivery.id, delivery);
 
-      const payment: StoredPayment = {
-        id: id("pay"),
-        userId,
-        orderId: order.id,
-        amount: plan.price,
-        status: "success",
-        method: "Flutterwave",
-        createdAt: now.toISOString(),
-      };
-      fallback.payments.set(payment.id, payment);
-
       return sub;
     }
   );
@@ -1029,12 +1022,18 @@ export async function updateSubscriptionStatus(
     async () => {
       const existing = await prisma.subscription.findFirst({ where: { id: subscriptionId, userId } });
       if (!existing) return null;
+      if (!canTransitionSubscription(existing.status, status)) {
+        throw new Error(`Cannot change subscription from ${existing.status} to ${status}`);
+      }
       const row = await prisma.subscription.update({ where: { id: subscriptionId }, data: { status } });
       return serializeSubscription(row);
     },
     () => {
       const sub = fallback.subscriptions.get(subscriptionId);
       if (!sub || sub.userId !== userId) return null;
+      if (!canTransitionSubscription(sub.status, status)) {
+        throw new Error(`Cannot change subscription from ${sub.status} to ${status}`);
+      }
       sub.status = status;
       sub.updatedAt = new Date().toISOString();
       fallback.subscriptions.set(sub.id, sub);
@@ -1453,10 +1452,11 @@ export async function generateDueSubscriptionOrders(now = new Date()) {
         if (!plan) continue;
 
         const cycleDays = cycleDaysForPlan(plan);
+        const cycleDate = subscription.nextDeliveryDate;
         const nextDeliveryDate =
           subscription.deliveryDayOfWeek != null
-            ? nextOccurrenceOfWeekday(now, subscription.deliveryDayOfWeek)
-            : new Date(addDays(now, cycleDays));
+            ? nextOccurrenceOfWeekday(cycleDate, subscription.deliveryDayOfWeek)
+            : new Date(addDays(cycleDate, cycleDays));
         const defaultAddress = await prisma.address.findFirst({
           where: { userId: subscription.userId, isDefault: true },
         });
@@ -1471,6 +1471,13 @@ export async function generateDueSubscriptionOrders(now = new Date()) {
               status: "processing",
               total: plan.price,
               deliveryDate: nextDeliveryDate,
+              items: {
+                create: orderItemSnapshots(
+                  subscription.planId,
+                  plan.price,
+                  (subscription.itemSwaps as Record<string, string>) ?? {},
+                ),
+              },
             },
           });
 
@@ -1525,10 +1532,11 @@ export async function generateDueSubscriptionOrders(now = new Date()) {
         if (!plan) continue;
 
         const cycleDays = cycleDaysForPlan(plan);
+        const cycleDate = new Date(subscription.nextDeliveryDate);
         const nextDeliveryDate =
           subscription.deliveryDayOfWeek != null
-            ? nextOccurrenceOfWeekday(now, subscription.deliveryDayOfWeek).toISOString()
-            : addDays(now, cycleDays);
+            ? nextOccurrenceOfWeekday(cycleDate, subscription.deliveryDayOfWeek).toISOString()
+            : addDays(cycleDate, cycleDays);
         const defaultAddress = Array.from(fallback.addresses.values()).find(
           (address) => address.userId === subscription.userId && address.isDefault
         );
