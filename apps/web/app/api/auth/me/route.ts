@@ -5,8 +5,9 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "../../lib/auth";
 import { updateProfileSchema } from "../../lib/validation";
 
 export async function GET(request: NextRequest) {
+  const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = verifySessionToken(cookie);
+  const session = verifySessionToken(bearer ?? cookie);
 
   if (!session) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
@@ -23,8 +24,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = verifySessionToken(cookie);
+  const session = verifySessionToken(bearer ?? cookie);
 
   if (!session) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });

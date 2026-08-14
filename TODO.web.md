@@ -34,9 +34,9 @@ The website is the fullstack core: it hosts the customer-facing web app, the adm
 - [x] Rate limiting on public/auth routes
 
 ## 4. Auth & Access Control
-- [ ] Auth.js/NextAuth or custom JWT setup, issuing tokens usable by mobile too (partial: custom signed cookie sessions exist)
+- [x] Custom signed access/refresh token setup usable by web cookies and mobile bearer authentication
 - [x] Middleware for protected routes (customer vs admin vs rider)
-- [ ] Password reset flow / OTP via email or SMS (partial: reset-token API exists; email/SMS delivery is not wired)
+- [x] Password reset flow with expiring single-use token delivery through email
 
 ## 5. Customer-Facing Web Pages
 - [x] Landing page (value prop, pricing tiers, how it works, CTA)

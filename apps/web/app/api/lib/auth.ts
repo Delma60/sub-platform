@@ -1,7 +1,10 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 
 export const SESSION_COOKIE_NAME = "session";
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+export const REFRESH_COOKIE_NAME = "refresh_token";
+export const ACCESS_TOKEN_MAX_AGE_SECONDS = 60 * 15;
+export const REFRESH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+export const SESSION_MAX_AGE_SECONDS = ACCESS_TOKEN_MAX_AGE_SECONDS;
 
 function getSecret() {
   const secret = process.env.NEXTAUTH_SECRET;
@@ -35,19 +38,33 @@ type SessionPayload = {
   email: string;
   role: "customer" | "admin" | "rider";
   exp: number;
+  type?: "access" | "refresh";
 };
 
 function sign(value: string) {
   return createHmac("sha256", getSecret()).update(value).digest("hex");
 }
 
-export function createSessionToken(payload: Omit<SessionPayload, "exp">) {
+function createToken(
+  payload: Omit<SessionPayload, "exp" | "type">,
+  type: "access" | "refresh",
+  maxAgeSeconds: number,
+) {
   const body: SessionPayload = {
     ...payload,
-    exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
+    type,
+    exp: Date.now() + maxAgeSeconds * 1000,
   };
   const encoded = Buffer.from(JSON.stringify(body)).toString("base64url");
   return `${encoded}.${sign(encoded)}`;
+}
+
+export function createSessionToken(payload: Omit<SessionPayload, "exp" | "type">) {
+  return createToken(payload, "access", ACCESS_TOKEN_MAX_AGE_SECONDS);
+}
+
+export function createRefreshToken(payload: Omit<SessionPayload, "exp" | "type">) {
+  return createToken(payload, "refresh", REFRESH_TOKEN_MAX_AGE_SECONDS);
 }
 
 export function verifySessionToken(
@@ -71,7 +88,27 @@ export function verifySessionToken(
     const payload: SessionPayload = JSON.parse(
       Buffer.from(encoded, "base64url").toString("utf8")
     );
-    return payload.exp > Date.now() ? payload : null;
+    return payload.exp > Date.now() && payload.type !== "refresh" ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+export function verifyRefreshToken(token: string | undefined | null): SessionPayload | null {
+  if (!token) return null;
+  const [encoded, signature] = token.split(".");
+  if (!encoded || !signature) return null;
+  const expected = sign(encoded);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (
+    signatureBuffer.length !== expectedBuffer.length ||
+    !timingSafeEqual(signatureBuffer, expectedBuffer)
+  ) return null;
+
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as SessionPayload;
+    return payload.type === "refresh" && payload.exp > Date.now() ? payload : null;
   } catch {
     return null;
   }

@@ -4,6 +4,9 @@ import { loginSchema } from "../../lib/validation";
 import { findUserByEmail, hasAdminUser, updateUser } from "../../lib/store";
 import {
   createSessionToken,
+  createRefreshToken,
+  REFRESH_COOKIE_NAME,
+  REFRESH_TOKEN_MAX_AGE_SECONDS,
   verifyPassword,
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
@@ -62,11 +65,13 @@ export async function POST(request: NextRequest) {
       email: user.email,
       role: user.role,
     });
+    const refreshToken = createRefreshToken({ sub: user.id, email: user.email, role: user.role });
 
     const response = NextResponse.json(
       apiSuccess({
         user: { id: user.id, name: user.name, email: user.email, role: user.role },
         accessToken: token,
+        refreshToken,
         expiresIn: SESSION_MAX_AGE_SECONDS,
       })
     );
@@ -77,6 +82,13 @@ export async function POST(request: NextRequest) {
       sameSite: "lax",
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS,
+    });
+    response.cookies.set(REFRESH_COOKIE_NAME, refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/api/auth",
+      maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
     });
 
     return response;

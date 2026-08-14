@@ -5,8 +5,9 @@ import { findUserById, updateUser } from "../../lib/store";
 import { SESSION_COOKIE_NAME, verifySessionToken, verifyPassword, hashPassword } from "../../lib/auth";
 
 export async function POST(request: NextRequest) {
+  const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = verifySessionToken(cookie);
+  const session = verifySessionToken(bearer ?? cookie);
 
   if (!session) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   const { currentPassword, newPassword } = parsed.data;
   const user = await findUserById(session.sub);
-  if (!user) {
+  if (!user || !user.active) {
     return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
   }
 

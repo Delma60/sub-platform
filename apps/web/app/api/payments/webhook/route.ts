@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     );
   }
   const payload = parsed.data;
-  const txRef = payload?.data?.tx_ref ?? payload?.tx_ref;
+  const txRef = (payload.data?.tx_ref ?? payload.tx_ref) as string;
   const providerStatus = payload?.data?.status ?? payload?.status;
   const providerTransactionId = payload?.data?.id ? String(payload.data.id) : undefined;
 

@@ -3,11 +3,15 @@ import { apiError, apiSuccess } from "../../lib/response";
 import { findUserById } from "../../lib/store";
 import {
   createSessionToken,
+  createRefreshToken,
+  REFRESH_COOKIE_NAME,
+  REFRESH_TOKEN_MAX_AGE_SECONDS,
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
-  verifySessionToken,
+  verifyRefreshToken,
 } from "../../lib/auth";
 import { checkRateLimit } from "../../lib/rate-limit";
+import { refreshTokenSchema } from "../../lib/validation";
 
 export async function POST(request: NextRequest) {
   const limit = checkRateLimit(request, "auth:refresh", {
@@ -21,23 +25,32 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
-  const session = verifySessionToken(bearer ?? request.cookies.get(SESSION_COOKIE_NAME)?.value);
+  const parsed = refreshTokenSchema.safeParse(await request.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(apiError("Invalid refresh request", 422), { status: 422 });
+  }
+  const session = verifyRefreshToken(
+    parsed.data.refreshToken ?? request.cookies.get(REFRESH_COOKIE_NAME)?.value,
+  );
   if (!session) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
 
   const user = await findUserById(session.sub);
-  if (!user) return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
+  if (!user || !user.active) {
+    return NextResponse.json(apiError("Not authenticated", 401), { status: 401 });
+  }
 
   const token = createSessionToken({
     sub: user.id,
     email: user.email,
     role: user.role,
   });
+  const refreshToken = createRefreshToken({ sub: user.id, email: user.email, role: user.role });
 
   const response = NextResponse.json(
     apiSuccess({
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
       accessToken: token,
+      refreshToken,
       expiresIn: SESSION_MAX_AGE_SECONDS,
     })
   );
@@ -47,6 +60,13 @@ export async function POST(request: NextRequest) {
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
+  });
+  response.cookies.set(REFRESH_COOKIE_NAME, refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/auth",
+    maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
   });
   return response;
 }
