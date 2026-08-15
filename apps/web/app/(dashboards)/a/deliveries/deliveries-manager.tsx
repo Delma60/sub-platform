@@ -15,6 +15,7 @@ type Row = {
   status: DeliveryStatus;
   scheduledDate: string;
   deliveredAt: string | null;
+  riderId: string | null;
   orderId: string;
   planName: string;
   customerName: string;
@@ -32,8 +33,10 @@ const FILTERS: { key: DeliveryStatus | "all"; label: string }[] = [
 
 export function DeliveriesManager({
   initialDeliveries,
+  riders,
 }: {
   initialDeliveries: Row[];
+  riders: { id: string; name: string }[];
 }) {
   const [rows, setRows] = useState<Row[]>(initialDeliveries);
   const [filter, setFilter] = useState<DeliveryStatus | "all">("all");
@@ -54,6 +57,28 @@ export function DeliveriesManager({
       )
       .sort((a, b) => (a.scheduledDate < b.scheduledDate ? -1 : 1));
   }, [rows, filter, query]);
+
+  async function assignRider(deliveryId: string, riderId: string | null) {
+    setBusyId(deliveryId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/deliveries/${deliveryId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ riderId }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setError(json.error ?? "Could not assign rider.");
+        return;
+      }
+      setRows((previous) => previous.map((row) => row.id === deliveryId ? { ...row, riderId: json.data.delivery.riderId } : row));
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function runAction(deliveryId: string, status: DeliveryStatus) {
     setBusyId(deliveryId);
@@ -193,6 +218,13 @@ export function DeliveriesManager({
                     </p>
 
                     <div className="flex flex-wrap items-center gap-2">
+                      <label className="flex items-center gap-2 text-xs text-[#6B6558]">
+                        Rider
+                        <select value={row.riderId ?? ""} disabled={isBusy || row.status === "delivered" || row.status === "skipped"} onChange={(event) => void assignRider(row.id, event.target.value || null)} className="rounded-full border border-[#E4DCC8] bg-white px-3 py-1.5 text-xs text-[#17251C] outline-none focus:border-[#24402F]">
+                          <option value="">Unassigned</option>
+                          {riders.map((rider) => <option key={rider.id} value={rider.id}>{rider.name}</option>)}
+                        </select>
+                      </label>
                       {row.status === "scheduled" && (
                         <>
                           <button

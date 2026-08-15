@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   const checkout = await initializeFlutterwavePayment({
     amount: result.order.total,
     txRef,
-    redirectUrl: `${origin}/checkout/result`,
+    redirectUrl: `${origin}/checkout/result?orderId=${encodeURIComponent(result.order.id)}`,
     customer: {
       email: user.email,
       name: user.name,

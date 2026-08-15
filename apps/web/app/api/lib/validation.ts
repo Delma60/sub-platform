@@ -34,6 +34,13 @@ export const adminDeliveryUpdateSchema = z.object({
   status: z.enum(["scheduled", "out_for_delivery", "delivered", "issue", "skipped"]),
 });
 
+export const adminDeliveryMutationSchema = z.object({
+  status: z.enum(["scheduled", "out_for_delivery", "delivered", "issue", "skipped"]).optional(),
+  riderId: z.string().min(1).nullable().optional(),
+}).refine((value) => value.status !== undefined || value.riderId !== undefined, {
+  message: "Provide a status or rider assignment",
+});
+
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(20).optional(),
 });

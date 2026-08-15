@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../lib/response";
 import { requireUser } from "../lib/require-user";
 import { subscribeSchema } from "../lib/validation";
-import { createSubscription, getActiveSubscription, getPlan } from "../lib/data-store";
+import { createSubscription, getActiveSubscription, getLatestOrderForSubscription, getPlan } from "../lib/data-store";
 import { notifySubscriptionCreated } from "../lib/notifications";
 
 export async function GET(request: NextRequest) {
@@ -29,13 +29,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const subscription = await createSubscription(user.id, parsed.data.planId);
+    const order = await getLatestOrderForSubscription(user.id, subscription.id);
     const plan = await getPlan(subscription.planId);
     if (plan) {
       await notifySubscriptionCreated(subscription, plan).catch((error) => {
         console.error("Subscription notification failed:", error);
       });
     }
-    return NextResponse.json(apiSuccess({ subscription }), { status: 201 });
+    return NextResponse.json(apiSuccess({ subscription, order }), { status: 201 });
   } catch (error) {
     return NextResponse.json(
       apiError(error instanceof Error ? error.message : "Could not subscribe", 400),

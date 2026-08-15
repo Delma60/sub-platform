@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   ImageOff,
+  UploadCloud,
 } from "lucide-react";
 
 type Product = {
@@ -67,6 +68,7 @@ export function ProductsManager({
   const [slugTouched, setSlugTouched] = useState(false);
   const [panel, setPanel] = useState<PanelState>({ mode: "idle" });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -115,6 +117,39 @@ export function ProductsManager({
       name: value,
       slug: slugTouched ? prev.slug : slugify(value),
     }));
+  }
+
+  async function handleImageUpload(file: File) {
+    if (!file.type.startsWith("image/")) {
+      setError("Choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Images must be 5 MB or smaller.");
+      return;
+    }
+    setUploading(true);
+    setError(null);
+    try {
+      const signResponse = await fetch("/api/uploads/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileName: file.name, contentType: file.type, folder: "products" }),
+      });
+      const signed = await signResponse.json();
+      if (!signResponse.ok || !signed.success) throw new Error(signed.error ?? "Could not prepare upload");
+      const uploadResponse = await fetch(signed.data.upload.uploadUrl, {
+        method: "PUT",
+        headers: signed.data.upload.headers,
+        body: file,
+      });
+      if (!uploadResponse.ok) throw new Error("Image upload failed");
+      setForm((previous) => ({ ...previous, imageUrl: signed.data.upload.publicUrl }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Image upload failed");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -494,15 +529,13 @@ export function ProductsManager({
                 </Field>
               </div>
 
-              <Field label="Image URL (optional)">
-                <input
-                  value={form.imageUrl}
-                  onChange={(e) =>
-                    setForm({ ...form, imageUrl: e.target.value })
-                  }
-                  placeholder="https://…"
-                  className="rounded-xl border border-[#E4DCC8] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#24402F]"
-                />
+              <Field label="Product image (optional)">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#E4DCC8] px-3.5 py-3 text-sm text-[#6B6558] transition hover:bg-[#17251C]/[0.04]">
+                  <UploadCloud className="h-4 w-4" />
+                  {uploading ? "Uploading…" : form.imageUrl ? "Replace image" : "Upload image"}
+                  <input type="file" accept="image/*" disabled={uploading} className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) void handleImageUpload(file); event.target.value = ""; }} />
+                </label>
+                {form.imageUrl && <p className="truncate text-xs text-[#6B6558]">Image ready</p>}
               </Field>
 
               <Field label="Description (optional)">
@@ -537,7 +570,7 @@ export function ProductsManager({
               <div className="mt-2 flex gap-2">
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploading}
                   className="rounded-full bg-[#24402F] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#1a2f22] disabled:opacity-60"
                 >
                   {saving

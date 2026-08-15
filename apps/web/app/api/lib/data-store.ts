@@ -1877,6 +1877,48 @@ export async function adminUpdateDeliveryStatus(
   );
 }
 
+export async function adminAssignDeliveryRider(
+  deliveryId: string,
+  riderId: string | null,
+): Promise<StoredDelivery | null> {
+  return withDbFallback(
+    async () => {
+      const existing = await prisma.delivery.findUnique({ where: { id: deliveryId } });
+      if (!existing) return null;
+      return serializeDelivery(await prisma.delivery.update({
+        where: { id: deliveryId },
+        data: { riderId },
+      }));
+    },
+    () => {
+      const delivery = fallback.deliveries.get(deliveryId);
+      if (!delivery) return null;
+      delivery.riderId = riderId;
+      fallback.deliveries.set(delivery.id, delivery);
+      return delivery;
+    },
+  );
+}
+
+export async function getLatestOrderForSubscription(
+  userId: string,
+  subscriptionId: string,
+): Promise<StoredOrder | null> {
+  return withDbFallback(
+    async () => {
+      const row = await prisma.order.findFirst({
+        where: { userId, subscriptionId },
+        orderBy: { createdAt: "desc" },
+      });
+      return row ? serializeOrder(row) : null;
+    },
+    () =>
+      Array.from(fallback.orders.values())
+        .filter((order) => order.userId === userId && order.subscriptionId === subscriptionId)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0] ?? null,
+  );
+}
+
 export async function riderUpdateDeliveryStatus(
   deliveryId: string,
   riderId: string,

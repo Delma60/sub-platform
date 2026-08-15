@@ -4,15 +4,16 @@ import {
   listAllAddresses,
   listPlans,
 } from "../../../api/lib/data-store";
-import { listUsersByIds } from "../../../api/lib/store";
+import { listUsers, listUsersByIds } from "../../../api/lib/store";
 import { DeliveriesManager } from "./deliveries-manager";
 
 export default async function AdminDeliveriesPage() {
-  const [deliveries, orders, addresses, plans] = await Promise.all([
+  const [deliveries, orders, addresses, plans, riders] = await Promise.all([
     listAllDeliveries(),
     listAllOrders(),
     listAllAddresses(),
     listPlans(),
+    listUsers("rider"),
   ]);
 
   const usersById = await listUsersByIds(deliveries.map((d) => d.userId));
@@ -33,6 +34,7 @@ export default async function AdminDeliveriesPage() {
       status: delivery.status,
       scheduledDate: delivery.scheduledDate,
       deliveredAt: delivery.deliveredAt,
+      riderId: delivery.riderId,
       orderId: delivery.orderId,
       planName: plan?.name ?? "Plan",
       customerName: user?.name ?? "Unknown customer",
@@ -100,7 +102,7 @@ export default async function AdminDeliveriesPage() {
         <StatCard label="Delivered" value={String(counts.delivered)} />
       </div>
 
-      <DeliveriesManager initialDeliveries={enriched} />
+      <DeliveriesManager initialDeliveries={enriched} riders={riders.filter((rider) => rider.active).map((rider) => ({ id: rider.id, name: rider.name }))} />
     </div>
   );
 }

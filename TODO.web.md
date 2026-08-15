@@ -40,15 +40,15 @@ The website is the fullstack core: it hosts the customer-facing web app, the adm
 
 ## 5. Customer-Facing Web Pages
 - [x] Landing page (value prop, pricing tiers, how it works, CTA)
-- [ ] Product/box catalog page
-- [ ] Plan selection + checkout flow (Flutterwave redirect/inline)
-- [ ] Checkout success / failure pages
+- [x] Product/box catalog page
+- [x] Plan selection + checkout flow (Flutterwave redirect)
+- [x] Checkout success / failure pages
 - [x] Customer dashboard: current subscription, next delivery date, pause/skip/cancel controls
 - [x] Order history + payment history
 - [x] Address book (add/edit/remove delivery addresses)
 - [x] Account settings (profile, password, notifications)
 - [x] Responsive/mobile-friendly layout
-- [ ] SEO basics: metadata, sitemap.xml, robots.txt, OG images (partial: metadata, sitemap, robots, OG metadata exist; generated OG image is not implemented)
+- [x] SEO basics: metadata, sitemap.xml, robots.txt, generated OG image
 
 ## 6. Admin Dashboard
 - [x] Admin login (role-gated)
