@@ -279,6 +279,22 @@ export async function notifyPaymentUpdated(payment: StoredPayment) {
   });
 }
 
+export async function notifyRiderAssignment(delivery: StoredDelivery) {
+  if (!delivery.riderId) return [];
+  const deliveryDate = formatDate(delivery.scheduledDate);
+  return notifyUser({
+    userId: delivery.riderId,
+    type: "delivery_status",
+    category: "delivery",
+    title: "New delivery assignment",
+    body: `A delivery has been assigned to you for ${deliveryDate}.`,
+    emailSubject: "New Oja rider assignment",
+    emailBody: `Delivery ${delivery.id} is assigned to you for ${deliveryDate}.`,
+    smsBody: `Oja Rider: New delivery assigned for ${deliveryDate}.`,
+    metadata: { deliveryId: delivery.id, orderId: delivery.orderId },
+  });
+}
+
 export async function notifyDeliveryStatusUpdated(delivery: StoredDelivery) {
   const label = delivery.status.replace(/_/g, " ");
   return notifyUser({
@@ -300,20 +316,24 @@ export async function notifyDeliveryStatusUpdated(delivery: StoredDelivery) {
 
 export async function notifyDeliveryReminder(delivery: StoredDelivery) {
   const deliveryDate = formatDate(delivery.scheduledDate);
-  return notifyUser({
-    userId: delivery.userId,
-    type: "delivery_reminder",
-    category: "delivery",
-    title: "Delivery reminder",
-    body: `Your Oja delivery is scheduled for ${deliveryDate}.`,
+  const customer = await notifyUser({
+    userId: delivery.userId, type: "delivery_reminder", category: "delivery",
+    title: "Delivery reminder", body: `Your Oja delivery is scheduled for ${deliveryDate}.`,
     emailSubject: "Your Oja delivery is coming up",
     emailBody: `Reminder: your Oja delivery is scheduled for ${deliveryDate}.`,
     smsBody: `Oja reminder: your delivery is scheduled for ${deliveryDate}.`,
-    metadata: {
-      deliveryId: delivery.id,
-      orderId: delivery.orderId,
-    },
+    metadata: { deliveryId: delivery.id, orderId: delivery.orderId },
   });
+  if (!delivery.riderId) return customer;
+  const rider = await notifyUser({
+    userId: delivery.riderId, type: "delivery_reminder", category: "delivery",
+    title: "Route reminder", body: `Assigned delivery ${delivery.id} is scheduled for ${deliveryDate}.`,
+    emailSubject: "Upcoming Oja rider route",
+    emailBody: `Assigned delivery ${delivery.id} is scheduled for ${deliveryDate}.`,
+    smsBody: `Oja Rider: Delivery ${delivery.id} is scheduled for ${deliveryDate}.`,
+    metadata: { deliveryId: delivery.id, orderId: delivery.orderId },
+  });
+  return [...customer, ...rider];
 }
 
 export async function resolvePlan(planId: string) {

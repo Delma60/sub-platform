@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../lib/response";
 import { requireUser } from "../../lib/require-user";
 import { requireAdmin } from "../../lib/require-admin";
+import { requireRider } from "../../lib/require-rider";
 import { uploadSignSchema } from "../../lib/validation";
 import { createSignedUploadUrl } from "../../lib/s3";
 
@@ -16,6 +17,14 @@ export async function POST(request: NextRequest) {
       apiError(parsed.error.issues[0]?.message ?? "Invalid input", 422),
       { status: 422 }
     );
+  }
+
+  if (parsed.data.folder === "proofs") {
+    const rider = await requireRider(request);
+    if (!rider) return NextResponse.json(apiError("Rider access required", 403), { status: 403 });
+    if (!parsed.data.contentType.startsWith("image/")) {
+      return NextResponse.json(apiError("Proof uploads must be images", 422), { status: 422 });
+    }
   }
 
   if (parsed.data.folder === "products") {

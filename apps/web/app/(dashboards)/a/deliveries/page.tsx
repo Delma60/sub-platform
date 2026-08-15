@@ -102,7 +102,7 @@ export default async function AdminDeliveriesPage() {
         <StatCard label="Delivered" value={String(counts.delivered)} />
       </div>
 
-      <DeliveriesManager initialDeliveries={enriched} riders={riders.filter((rider) => rider.active).map((rider) => ({ id: rider.id, name: rider.name }))} />
+      <DeliveriesManager initialDeliveries={enriched} riders={riders.filter((rider) => rider.active).map((rider) => ({ id: rider.id, name: rider.name, workload: deliveries.filter((delivery) => delivery.riderId === rider.id && delivery.status !== "delivered" && delivery.status !== "skipped").length }))} />
     </div>
   );
 }

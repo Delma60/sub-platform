@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from "../../../lib/response";
 import { requireRider } from "../../../lib/require-rider";
 import { adminDeliveryUpdateSchema, riderDeliveryUpdateSchema } from "../../../lib/validation";
-import { adminUpdateDeliveryStatus, riderUpdateDeliveryStatus } from "../../../lib/data-store";
+import { adminUpdateDeliveryStatus, riderUpdateDeliveryStatus, type RiderDeliveryMutation } from "../../../lib/data-store";
 import { notifyDeliveryStatusUpdated } from "../../../lib/notifications";
 
 export async function PATCH(
@@ -26,7 +26,7 @@ export async function PATCH(
 
   const delivery = rider.role === "admin"
     ? await adminUpdateDeliveryStatus(params.id, parsed.data.status)
-    : await riderUpdateDeliveryStatus(params.id, rider.id, parsed.data.status);
+    : await riderUpdateDeliveryStatus(params.id, rider.id, parsed.data as RiderDeliveryMutation);
   if (!delivery) {
     return NextResponse.json(apiError("Delivery not found", 404), { status: 404 });
   }

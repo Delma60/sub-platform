@@ -46,7 +46,24 @@ export const refreshTokenSchema = z.object({
 });
 
 export const riderDeliveryUpdateSchema = z.object({
-  status: z.enum(["out_for_delivery", "delivered", "issue"]),
+  status: z.enum(["out_for_delivery", "delivered", "issue", "scheduled"]),
+  proofImageUrl: z.string().url().optional(),
+  recipientName: z.string().trim().min(2).max(100).optional(),
+  riderNote: z.string().trim().max(500).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  issueType: z.enum(["customer_unavailable", "missing_item", "damaged_item", "wrong_address", "payment_issue"]).optional(),
+  rescheduledDate: z.string().datetime().optional(),
+}).superRefine((value, context) => {
+  if (value.status === "delivered" && (!value.proofImageUrl || !value.recipientName)) {
+    context.addIssue({ code: "custom", message: "Proof photo and recipient name are required" });
+  }
+  if (value.status === "issue" && !value.issueType) {
+    context.addIssue({ code: "custom", message: "Choose an issue type" });
+  }
+  if (value.status === "scheduled" && !value.rescheduledDate) {
+    context.addIssue({ code: "custom", message: "Choose a rescheduled date" });
+  }
 });
 
 export const customerDeliveryActionSchema = z.object({

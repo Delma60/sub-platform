@@ -106,6 +106,12 @@ export type StoredDelivery = {
   scheduledDate: string;
   deliveredAt: string | null;
   riderId: string | null;
+  proofImageUrl?: string | null;
+  recipientName?: string | null;
+  riderNote?: string | null;
+  proofLatitude?: number | null;
+  proofLongitude?: number | null;
+  issueType?: string | null;
 };
 
 export type PaymentStatus = "success" | "failed" | "pending";
@@ -382,6 +388,12 @@ function serializeDelivery(row: {
   scheduledDate: Date;
   deliveredAt: Date | null;
   riderId?: string | null;
+  proofImageUrl?: string | null;
+  recipientName?: string | null;
+  riderNote?: string | null;
+  proofLatitude?: number | null;
+  proofLongitude?: number | null;
+  issueType?: string | null;
 }): StoredDelivery {
   return {
     id: row.id,
@@ -392,6 +404,12 @@ function serializeDelivery(row: {
     scheduledDate: row.scheduledDate.toISOString(),
     deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
     riderId: row.riderId ?? null,
+    proofImageUrl: row.proofImageUrl ?? null,
+    recipientName: row.recipientName ?? null,
+    riderNote: row.riderNote ?? null,
+    proofLatitude: row.proofLatitude ?? null,
+    proofLongitude: row.proofLongitude ?? null,
+    issueType: row.issueType ?? null,
   };
 }
 
@@ -1919,25 +1937,42 @@ export async function getLatestOrderForSubscription(
   );
 }
 
-export async function riderUpdateDeliveryStatus(
-  deliveryId: string,
-  riderId: string,
-  status: DeliveryStatus,
-): Promise<StoredDelivery | null> {
+export type RiderDeliveryMutation = {
+  status: Exclude<DeliveryStatus, "skipped">;
+  proofImageUrl?: string; recipientName?: string; riderNote?: string;
+  latitude?: number; longitude?: number; issueType?: string; rescheduledDate?: string;
+};
+
+export async function riderUpdateDeliveryStatus(deliveryId: string, riderId: string, input: RiderDeliveryMutation): Promise<StoredDelivery | null> {
   return withDbFallback(
     async () => {
       const existing = await prisma.delivery.findFirst({ where: { id: deliveryId, riderId } });
       if (!existing) return null;
-      return serializeDelivery(await prisma.delivery.update({
-        where: { id: deliveryId },
-        data: { status, deliveredAt: status === "delivered" ? new Date() : existing.deliveredAt },
-      }));
+      return serializeDelivery(await prisma.delivery.update({ where: { id: deliveryId }, data: {
+        status: input.status,
+        deliveredAt: input.status === "delivered" ? new Date() : existing.deliveredAt,
+        scheduledDate: input.rescheduledDate ? new Date(input.rescheduledDate) : existing.scheduledDate,
+        proofImageUrl: input.proofImageUrl ?? existing.proofImageUrl,
+        recipientName: input.recipientName ?? existing.recipientName,
+        riderNote: input.riderNote ?? existing.riderNote,
+        proofLatitude: input.latitude ?? existing.proofLatitude,
+        proofLongitude: input.longitude ?? existing.proofLongitude,
+        issueType: input.issueType ?? (input.status === "issue" ? existing.issueType : null),
+      } }));
     },
     () => {
       const delivery = fallback.deliveries.get(deliveryId);
       if (!delivery || delivery.riderId !== riderId) return null;
-      delivery.status = status;
-      if (status === "delivered") delivery.deliveredAt = new Date().toISOString();
+      delivery.status = input.status;
+      if (input.status === "delivered") delivery.deliveredAt = new Date().toISOString();
+      if (input.rescheduledDate) delivery.scheduledDate = input.rescheduledDate;
+      delivery.proofImageUrl = input.proofImageUrl ?? delivery.proofImageUrl ?? null;
+      delivery.recipientName = input.recipientName ?? delivery.recipientName ?? null;
+      delivery.riderNote = input.riderNote ?? delivery.riderNote ?? null;
+      delivery.proofLatitude = input.latitude ?? delivery.proofLatitude ?? null;
+      delivery.proofLongitude = input.longitude ?? delivery.proofLongitude ?? null;
+      delivery.issueType = input.issueType ?? (input.status === "issue" ? delivery.issueType ?? null : null);
+      fallback.deliveries.set(delivery.id, delivery);
       return delivery;
     },
   );

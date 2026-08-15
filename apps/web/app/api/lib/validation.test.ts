@@ -13,7 +13,9 @@ describe("Phase 3 API contracts", () => {
   });
 
   it("prevents riders from setting admin-only delivery states", () => {
-    expect(riderDeliveryUpdateSchema.safeParse({ status: "delivered" }).success).toBe(true);
+    expect(riderDeliveryUpdateSchema.safeParse({ status: "delivered", proofImageUrl: "https://example.com/proof.jpg", recipientName: "Ada" }).success).toBe(true);
+    expect(riderDeliveryUpdateSchema.safeParse({ status: "issue", issueType: "wrong_address" }).success).toBe(true);
+    expect(riderDeliveryUpdateSchema.safeParse({ status: "delivered" }).success).toBe(false);
     expect(riderDeliveryUpdateSchema.safeParse({ status: "skipped" }).success).toBe(false);
     expect(riderDeliveryUpdateSchema.safeParse({ status: "scheduled" }).success).toBe(false);
   });

@@ -25,12 +25,15 @@ type Row = {
   } | null;
 };
 
-const FILTERS: { key: DeliveryStatus | "all"; label: string }[] = [
+type RouteFilter = "all" | "today" | "pending" | "in_progress" | "completed" | "failed";
+
+const FILTERS: { key: RouteFilter; label: string }[] = [
   { key: "all", label: "All" },
-  { key: "scheduled", label: "Scheduled" },
-  { key: "out_for_delivery", label: "Out for delivery" },
-  { key: "issue", label: "Issues" },
-  { key: "delivered", label: "Delivered" },
+  { key: "today", label: "Today" },
+  { key: "pending", label: "Pending" },
+  { key: "in_progress", label: "In progress" },
+  { key: "completed", label: "Completed" },
+  { key: "failed", label: "Failed" },
 ];
 
 function directionsUrl(address: Row["address"]) {
@@ -47,14 +50,25 @@ export function RiderDeliveriesList({
   initialDeliveries: Row[];
 }) {
   const [rows, setRows] = useState<Row[]>(initialDeliveries);
-  const [filter, setFilter] = useState<DeliveryStatus | "all">("all");
+  const [filter, setFilter] = useState<RouteFilter>("all");
   const [query, setQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .filter((row) => (filter === "all" ? true : row.status === filter))
+      .filter((row) => {
+        if (filter === "all") return true;
+        if (filter === "today") {
+          const date = new Date(row.scheduledDate);
+          const today = new Date();
+          return date.toDateString() === today.toDateString();
+        }
+        if (filter === "pending") return row.status === "scheduled";
+        if (filter === "in_progress") return row.status === "out_for_delivery";
+        if (filter === "completed") return row.status === "delivered";
+        return row.status === "issue";
+      })
       .filter((row) => (q ? row.customerName.toLowerCase().includes(q) : true));
   }, [rows, filter, query]);
 

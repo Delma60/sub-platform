@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCurrentRider } from "../../lib/get-current-rider";
 import {
   listAllAddresses,
   listAllDeliveries,
@@ -17,6 +18,7 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default async function RiderPage() {
+  const rider = await getCurrentRider();
   const [deliveries, orders, addresses, plans] = await Promise.all([
     listAllDeliveries(),
     listAllOrders(),
@@ -24,8 +26,12 @@ export default async function RiderPage() {
     listPlans(),
   ]);
 
+  const assignedDeliveries = rider?.role === "admin"
+    ? deliveries
+    : deliveries.filter((delivery) => delivery.riderId === rider?.id);
+
   const today = new Date();
-  const todaysDeliveries = deliveries.filter((delivery) =>
+  const todaysDeliveries = assignedDeliveries.filter((delivery) =>
     isSameDay(new Date(delivery.scheduledDate), today),
   );
 

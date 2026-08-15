@@ -4,10 +4,12 @@ import {
   listAllOrders,
   listPlans,
 } from "../../../api/lib/data-store";
+import { getCurrentRider } from "../../../lib/get-current-rider";
 import { listUsersByIds } from "../../../api/lib/store";
 import { RiderDeliveriesList } from "./rider-deliveries-list";
 
 export default async function RiderAllDeliveriesPage() {
+  const rider = await getCurrentRider();
   const [deliveries, orders, addresses, plans] = await Promise.all([
     listAllDeliveries(),
     listAllOrders(),
@@ -15,12 +17,16 @@ export default async function RiderAllDeliveriesPage() {
     listPlans(),
   ]);
 
+  const assignedDeliveries = rider?.role === "admin"
+    ? deliveries
+    : deliveries.filter((delivery) => delivery.riderId === rider?.id);
+
   const usersById = await listUsersByIds(deliveries.map((d) => d.userId));
   const orderMap = new Map(orders.map((o) => [o.id, o]));
   const addressMap = new Map(addresses.map((a) => [a.id, a]));
   const planMap = new Map(plans.map((p) => [p.id, p]));
 
-  const enriched = deliveries
+  const enriched = assignedDeliveries
     .map((delivery) => {
       const user = usersById.get(delivery.userId);
       const order = orderMap.get(delivery.orderId);

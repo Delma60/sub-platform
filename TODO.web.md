@@ -52,28 +52,28 @@ The website is the fullstack core: it hosts the customer-facing web app, the adm
 
 ## 6. Admin Dashboard
 - [x] Admin login (role-gated)
-- [ ] Manage products (create/edit, upload images to S3) (partial: product CRUD and image URL fields exist; direct S3 upload UI is not wired)
+- [x] Manage products (create/edit, upload images to S3)
 - [x] Manage subscription plans (tiers, pricing, item templates)
 - [x] View/manage all subscriptions (search, filter by status)
 - [x] View/manage orders and delivery status
-- [ ] Assign riders to deliveries
+- [x] Assign riders to deliveries
 - [x] Manage riders (create/edit/deactivate rider accounts)
 - [x] View payment/transaction logs
 - [x] Basic analytics (active subs, MRR, churn, upcoming deliveries count)
 
 ## 7. Rider/Ops View (can be part of admin, gated by role)
 - [x] Today's delivery list
-- [ ] Rider delivery detail page with customer/address/order/plan context
-- [ ] Rider delivery route/list filters: today, pending, in-progress, completed, failed
+- [x] Rider delivery detail page with customer/address/order/plan context
+- [x] Rider delivery route/list filters: today, pending, in-progress, completed, failed
 - [ ] Mark delivery in-progress, delivered, failed, or rescheduled from rider dashboard
 - [ ] Upload proof-of-delivery photo via S3 signed upload
 - [ ] Capture proof metadata: recipient name, rider note, delivery timestamp, optional geo/location
 - [ ] Report delivery issue: customer unavailable, missing item, damaged item, wrong address, payment issue
-- [ ] Rider-safe `PATCH /api/deliveries/:id` flow with ownership checks
+- [x] Rider-safe `PATCH /api/deliveries/:id` flow with ownership checks
 - [ ] Admin assignment workflow: assign/reassign rider, unassign rider, view rider workload
 - [ ] Rider notification flow: new assignment, route changes, delivery reminders
-- [ ] Rider mobile-friendly layout for one-handed delivery-day use
-- [ ] Rider delivery history page
+- [x] Rider mobile-friendly layout for one-handed delivery-day use
+- [x] Rider delivery history page
 
 ## 8. Notifications (triggered from backend)
 - [x] Email service integration (Resend/SendGrid) - order confirmation, receipts, delivery reminders

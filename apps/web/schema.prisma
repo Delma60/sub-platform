@@ -171,6 +171,12 @@ model Delivery {
   scheduledDate DateTime
   deliveredAt   DateTime?
   riderId       String?
+  proofImageUrl  String?
+  recipientName String?
+  riderNote     String?
+  proofLatitude Float?
+  proofLongitude Float?
+  issueType     String?
   user          User           @relation("CustomerDeliveries", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   rider         User?          @relation("RiderDeliveries", fields: [riderId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)

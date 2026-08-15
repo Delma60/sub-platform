@@ -36,7 +36,7 @@ export function DeliveriesManager({
   riders,
 }: {
   initialDeliveries: Row[];
-  riders: { id: string; name: string }[];
+  riders: { id: string; name: string; workload: number }[];
 }) {
   const [rows, setRows] = useState<Row[]>(initialDeliveries);
   const [filter, setFilter] = useState<DeliveryStatus | "all">("all");
@@ -222,7 +222,7 @@ export function DeliveriesManager({
                         Rider
                         <select value={row.riderId ?? ""} disabled={isBusy || row.status === "delivered" || row.status === "skipped"} onChange={(event) => void assignRider(row.id, event.target.value || null)} className="rounded-full border border-[#E4DCC8] bg-white px-3 py-1.5 text-xs text-[#17251C] outline-none focus:border-[#24402F]">
                           <option value="">Unassigned</option>
-                          {riders.map((rider) => <option key={rider.id} value={rider.id}>{rider.name}</option>)}
+                          {riders.map((rider) => <option key={rider.id} value={rider.id}>{rider.name} ({rider.workload} active)</option>)}
                         </select>
                       </label>
                       {row.status === "scheduled" && (

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getCurrentRider } from "../../../../lib/get-current-rider";
 import {
   listAllAddresses,
   listAllDeliveries,
@@ -7,7 +8,7 @@ import {
 } from "../../../../api/lib/data-store";
 import { listUsersByIds } from "../../../../api/lib/store";
 import { DeliveryStatusPill } from "../../../u/deliveries/delivery-status-pill";
-import { DeliveryDetailActions } from "./delivery-detail-actions";
+import { RiderOperationForm } from "./rider-operation-form";
 
 export default async function RiderDeliveryDetailPage({
   params,
@@ -15,6 +16,7 @@ export default async function RiderDeliveryDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const rider = await getCurrentRider();
 
   const [deliveries, orders, addresses, plans] = await Promise.all([
     listAllDeliveries(),
@@ -23,7 +25,9 @@ export default async function RiderDeliveryDetailPage({
     listPlans(),
   ]);
 
-  const delivery = deliveries.find((d) => d.id === id);
+  const delivery = deliveries.find((candidate) =>
+    candidate.id === id && (rider?.role === "admin" || candidate.riderId === rider?.id)
+  );
   if (!delivery) notFound();
 
   const order = orders.find((o) => o.id === delivery.orderId);
@@ -120,10 +124,10 @@ export default async function RiderDeliveryDetailPage({
 
       <div className="rounded-3xl border border-[#E4DCC8] bg-white p-6">
         <p className="text-xs uppercase tracking-[0.2em] text-[#6B6558]">
-          Update status
+          Delivery actions
         </p>
         <div className="mt-4">
-          <DeliveryDetailActions deliveryId={delivery.id} status={delivery.status} />
+          <RiderOperationForm deliveryId={delivery.id} status={delivery.status} />
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { requireAdmin } from "../../../lib/require-admin";
 import { adminDeliveryMutationSchema } from "../../../lib/validation";
 import { adminAssignDeliveryRider, adminUpdateDeliveryStatus } from "../../../lib/data-store";
 import { findUserById } from "../../../lib/store";
-import { notifyDeliveryStatusUpdated } from "../../../lib/notifications";
+import { notifyDeliveryStatusUpdated, notifyRiderAssignment } from "../../../lib/notifications";
 
 export async function PATCH(
   request: NextRequest,
@@ -41,8 +41,15 @@ export async function PATCH(
   if (!delivery) {
     return NextResponse.json(apiError("Delivery not found", 404), { status: 404 });
   }
-  await notifyDeliveryStatusUpdated(delivery).catch((error) => {
-    console.error("Delivery status notification failed:", error);
-  });
+  if (parsed.data.status !== undefined) {
+    await notifyDeliveryStatusUpdated(delivery).catch((error) => {
+      console.error("Delivery status notification failed:", error);
+    });
+  }
+  if (parsed.data.riderId) {
+    await notifyRiderAssignment(delivery).catch((error) => {
+      console.error("Rider assignment notification failed:", error);
+    });
+  }
   return NextResponse.json(apiSuccess({ delivery }));
 }
