@@ -65,13 +65,13 @@ The website is the fullstack core: it hosts the customer-facing web app, the adm
 - [x] Today's delivery list
 - [x] Rider delivery detail page with customer/address/order/plan context
 - [x] Rider delivery route/list filters: today, pending, in-progress, completed, failed
-- [ ] Mark delivery in-progress, delivered, failed, or rescheduled from rider dashboard
-- [ ] Upload proof-of-delivery photo via S3 signed upload
-- [ ] Capture proof metadata: recipient name, rider note, delivery timestamp, optional geo/location
-- [ ] Report delivery issue: customer unavailable, missing item, damaged item, wrong address, payment issue
+- [x] Mark delivery in-progress, delivered, failed, or rescheduled from rider dashboard
+- [x] Upload proof-of-delivery photo via S3 signed upload
+- [x] Capture proof metadata: recipient name, rider note, delivery timestamp, optional geo/location
+- [x] Report delivery issue: customer unavailable, missing item, damaged item, wrong address, payment issue
 - [x] Rider-safe `PATCH /api/deliveries/:id` flow with ownership checks
-- [ ] Admin assignment workflow: assign/reassign rider, unassign rider, view rider workload
-- [ ] Rider notification flow: new assignment, route changes, delivery reminders
+- [x] Admin assignment workflow: assign/reassign rider, unassign rider, view rider workload
+- [x] Rider notification flow: new assignment, route changes, delivery reminders
 - [x] Rider mobile-friendly layout for one-handed delivery-day use
 - [x] Rider delivery history page
 

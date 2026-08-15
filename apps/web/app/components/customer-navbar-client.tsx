@@ -26,11 +26,11 @@ export function CustomerNavbarClient({ user }: { user: User | null }) {
     : null;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--paper)]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+    <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--paper)]/85 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link
           href="/"
-          className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--ink)]"
+          className="font-display text-3xl text-[var(--accent)]"
           onClick={() => setMobileOpen(false)}
         >
           Oja
@@ -64,7 +64,7 @@ export function CustomerNavbarClient({ user }: { user: User | null }) {
                 <button
                   type="submit"
                   aria-label="Sign out"
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--ink-soft)] transition hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ink-soft)] transition hover:bg-[var(--accent-soft)] hover:text-[var(--ink)]"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -80,7 +80,7 @@ export function CustomerNavbarClient({ user }: { user: User | null }) {
               </Link>
               <Link
                 href="/auth/register"
-                className="rounded-md bg-[var(--accent)] px-5 py-2.5 text-[13px] font-medium text-white transition hover:bg-[#243020]"
+                className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-[13px] font-medium text-white transition hover:bg-[#243020]"
               >
                 Start your subscription
               </Link>

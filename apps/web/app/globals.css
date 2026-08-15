@@ -1,14 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #F7F7F3;
-  --surface: #FFFFFF;
-  --ink: #15150F;
-  --ink-soft: #706C60;
-  --line: #E6E3DA;
-  --accent: #2E3B29;
-  --accent-soft: #EDF0E7;
+  --paper: #F8F4EA;
+  --surface: #FFFDF8;
+  --ink: #16251C;
+  --ink-soft: #667267;
+  --line: #DDE2D7;
+  --accent: #164B35;
+  --accent-strong: #0D3524;
+  --accent-soft: #E7F0E8;
+  --harvest: #E46D3C;
+  --harvest-soft: #FBE9DF;
+  --gold: #C79A4A;
   --font-sans: var(--font-sans);
+  --font-display: Georgia, "Times New Roman", serif;
 }
 
 @theme inline {
@@ -50,4 +55,46 @@ select {
 ::selection {
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+
+h1, h2, .font-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.premium-card {
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 1.5rem;
+  box-shadow: 0 18px 60px rgba(22, 75, 53, 0.07);
+}
+
+.eyebrow {
+  color: var(--harvest);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.premium-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.premium-button:hover {
+  transform: translateY(-1px);
+  background: var(--accent-strong);
+  box-shadow: 0 10px 25px rgba(22, 75, 53, 0.2);
 }
